@@ -22,44 +22,6 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('GET', '/jwt', ['MainController', 'validateJwt']);
     $r->addRoute('POST', '/jwt', ['MainController', 'createJwt']);
 
-    /* ******************* 유저 관련 API ********************* */
-    $r->addRoute('POST','/user',['IndexController','postUser']); //완료
-    $r->addRoute('POST','/login',['IndexController','login']);
-    $r->addRoute('DELETE','/users',['IndexController','deleteUser']);
-    $r->addRoute('GET','/users',['IndexController','getUser']);
-
-    /* ******************* 웹툰 관련 API ********************* */
-    $r->addRoute('GET','/webtoons',['IndexController','getWebtoons']);
-    $r->addRoute('POST','/webtoons/heart',['IndexController','postWebtoonHeart']); //완료
-    $r->addRoute('POST','/myWebtoon',['IndexController','postMyWebtoon']);
-
-    /* ******************* 콘텐츠 관련 API ******************* */
-    $r->addRoute('GET','/webtoons/{webtoonID}/contents',['IndexController','getContents']);
-    $r->addRoute('GET','/webtoons/content/{contentID}',['IndexController','getContent']);
-    $r->addRoute('GET','/firstWebtoon/{webtoonID}',['IndexController','getFirstContent']);
-    $r->addRoute('POST','/webtoons/content/heart',['IndexController','postContentHeart']);
-    $r->addRoute('POST','/webtoons/content/star',['IndexController','postContentStar']);
-    $r->addRoute('GET','/prev/{contentID}',['IndexController','getPrevContent']);
-    $r->addRoute('GET','/next/{contentID}',['IndexController','getNextContent']);
-
-
-    /* ********************댓글 관련 API***************************** */
-    $r->addRoute('GET','/webtoons/content/{contentID}/comment',['IndexController','getComment']);
-    $r->addRoute('GET','/webtoons/content/{contentID}/bestComment',['IndexController','getBestComment']);
-    $r->addRoute('POST','/webtoons/content/comment',['IndexController','postComment']);
-    $r->addRoute('POST','/commentLike',['IndexController','postCommentLike']);
-    $r->addRoute('POST','/commentDislike',['IndexController','postCommentDislike']);
-    $r->addRoute('DELETE','/comment/{commentID}',['IndexController','deleteComment']);
-    
-    /* ********************My 엡툰 관련 API***************************** */
-    $r->addRoute('GET','/myWebtoons',['IndexController','getMyWebtoon']); //완료
-    $r->addRoute('DELETE','/myWebtoons/{webtoonID}',['IndexController','deleteMyWebtoon']);
-
-    /* ********************광고관련련 API**************************** */
-    $r->addRoute('GET','/ad/{adID}',['IndexController','getAd']);
-
-
-
 
 
 //    $r->addRoute('GET', '/users', 'get_all_users_handler');

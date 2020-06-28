@@ -28,36 +28,6 @@ function isValidHeader($jwt, $key)
     }
 }
 
-//패스워드 형식 검사
-function isValidPassword($password)
-{
-    return preg_match("/^.{10,16}$/", $password);
-}
-
-//아이디 형식 검사
-function isValidID($userID){
-    return preg_match(
-        "/^[a-zA-Z]\w{2,7}$/",$userID);
-}
-
-//이름 형식 검사
-function isValidName($userName){
-    return preg_match("/^[\x{ac00}-\x{d7af}]{2,5}$/u",$userName);
-}
-//닉네임 형식 검사
-function isValidNickName($userNickname){
-    return preg_match("/^[a-zA-Z]\w{2,7}$/",$userNickname);
-}
-
-//니이 형식 검사
-function isValidAge($age){
-    return preg_match("/^[0-9]{1,2}$/",$age);
-}
-
-function isValidStar($star){
-    return preg_match("/^([1-9]|10)$/",$star);
-}
-
 function sendFcm($fcmToken, $data, $key, $deviceType)
 {
     $url = 'https://fcm.googleapis.com/fcm/send';
