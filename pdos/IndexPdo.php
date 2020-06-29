@@ -4,7 +4,7 @@
 function test()
 {
     $pdo = pdoSqlConnect();
-    $query = "SELECT * FROM Test;";
+    $query = "SELECT * FROM user;";
 
     $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
@@ -66,6 +66,28 @@ function isValidUser($id, $pw){
 
     return intval($res[0]["exist"]);
 
+}
+
+function getMyNotice(){
+    $pdo=pdoSqlConnect();
+    $query = "select notice.noticeName as 게시판이름,content.contentTitle as 글제목,(case when (timediff(now(),content.createdAt) < \"12:00:00\") then \"new\" else 0 end) as 최신여부
+from user inner join univ using(univIdx)
+    inner join notice using(univIdx)
+    inner join myNotice on myNotice.userIdx = user.userIdx and notice.noticeIdx=myNotice.noticeIdx
+    inner join content on notice.noticeIdx=content.noticeIdx
+    inner join (select content.noticeIdx as ni,max(content.createdAt) as maxtime from content group by content.noticeIdx) as t1
+        on t1.maxtime = content.createdAt and t1.ni=content.noticeIdx
+where user.userIdx = 1
+order by myNotice.createdAt;";
+    $st = $pdo->prepare($query);
+    $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
 }
 
 

@@ -23,6 +23,9 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('POST', '/jwt', ['MainController', 'createJwt']);
 
 
+    /* ******************   EveryTime   ****************** */
+    $r->addRoute('GET', '/myNotice', ['IndexController', 'getMyNotice']);
+
 
 //    $r->addRoute('GET', '/users', 'get_all_users_handler');
 //    // {id} must be a number (\d+)

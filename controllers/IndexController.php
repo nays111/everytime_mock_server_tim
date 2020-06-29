@@ -61,6 +61,16 @@ try {
             $res->message = "테스트 성공";
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
+
+        case "getMyNotice":
+            http_response_code(200);
+            $res->result = getMyNotice();
+            $res->isSuccess = TRUE;
+            $res->code = 100;
+            $res->message = "즐겨찾기 게시판 조회 성공";
+
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
     }
 } catch (\Exception $e) {
     return getSQLErrorException($errorLogs, $e, $req);
