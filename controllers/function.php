@@ -28,6 +28,96 @@ function isValidHeader($jwt, $key)
     }
 }
 
+//패스워드 형식 검사
+function isValidPasswordForm($password)
+{
+    return preg_match("/^.{3,20}$/", $password); //4~20자리
+}
+
+//아이디 형식 검사
+function isValidIDForm($userID){
+    return preg_match("/^[a-zA-Z]\w{3,20}$/", $userID);
+}
+//폰 형식 검사
+function isValidPhoneNumberForm($phone)
+{
+    return preg_match("/^01[0-9]{8,9}$/", $phone); //01~~~~로 시작해야댐
+}
+
+//이메일 형식 검사
+function isValidEmailForm($email)
+{
+    return filter_var($email, FILTER_VALIDATE_EMAIL);
+}
+
+//닉네임 형식 검사
+function isValidNickNameForm($userNickname){
+    return preg_match("/^[ㄱ-ㅎ|가-힣|a-z|A-Z|0-9|\*]{2,7}+$/",$userNickname); //2~7자리
+}
+
+//학번 형식 검사
+function isValidYearForm($year){
+    return preg_match("/^[20]{2}[0-9]{2,4}/",$year); //2자리
+}
+
+//유효한 대학 이름 인지 검사
+function isValidUniv($univName){
+    $pdo=pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM univ WHERE univName= ?) AS validUnivName;";
+    $st = $pdo -> prepare($query);
+    $st->execute([$univName]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["validUnivName"]);
+}
+
+//ID중복되는지 검사
+function isRedundantUserID($userID){
+    $pdo=pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM user WHERE userID= ?) AS rendundantUser;";
+    $st = $pdo -> prepare($query);
+    $st->execute([$userID]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["validUser"]);
+}
+
+//중복된 닉네임인지 검사
+function isRedundantNickname($userNickname){
+    $pdo=pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM user WHERE userNickname= ?) AS redundantUserNickname;";
+    $st = $pdo -> prepare($query);
+    $st->execute([$userNickname]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["redundantUserNickname"]);
+}
+
+//중복된 이메일인지 검사
+function isRedundantEmail($email){
+    $pdo=pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM user WHERE email= ?) AS redundantEmail;";
+    $st = $pdo -> prepare($query);
+    $st->execute([$email]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["redundantEmail"]);
+
+}
+
+
 function sendFcm($fcmToken, $data, $key, $deviceType)
 {
     $url = 'https://fcm.googleapis.com/fcm/send';

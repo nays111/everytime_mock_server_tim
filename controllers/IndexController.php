@@ -61,16 +61,123 @@ try {
             $res->message = "테스트 성공";
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
-
-        case "getMyNotice":
+        /*
+         * API No. 1
+         * API Name : 회원가입 API
+         * 마지막 수정 날짜 : 20.06.30
+         */
+        case "postUser":
             http_response_code(200);
-            $res->result = getMyNotice();
+
+            if(!isValidIDForm($req->userID)){
+                $res->isSuccess = FALSE;
+                $res->code = 201;
+                $res->message = "잘못된 ID 형식입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            }else if(!isValidPasswordForm($req->pw)){
+                $res->isSuccess = FALSE;
+                $res->code = 202;
+                $res->message = "잘못된 비밀번호 형식입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            }else if(!isValidNickNameForm($req->userNickname)){
+                $res->isSuccess = FALSE;
+                $res->code = 203;
+                $res->message = "잘못된 형식의 닉네임 입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            }else if(!isValidPhoneNumberForm($req->phoneNum)){
+                $res->isSuccess = FALSE;
+                $res->code = 204;
+                $res->message = "잘못된 형식의 휴대폰 번호 입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            }else if(!isValidEmailForm($req->email)){
+                $res->isSuccess = FALSE;
+                $res->code = 205;
+                $res->message = "잘못된 형식의 이메일 입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            }else if(isRedundantUserID($req->userID)){
+                $res->isSuccess = FALSE;
+                $res->code = 206;
+                $res->message = "이미 등록된 아이디 입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            }else if(isRedundantNickname($req->userNickname)){
+                $res->isSuccess = FALSE;
+                $res->code = 207;
+                $res->message = "이미 등록된 닉네임 입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            }else if(isRedundantEmail($req->email)){
+                $res->isSuccess = FALSE;
+                $res->code = 208;
+                $res->message = "이미 등록된 이메일 입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            }else if(!isValidUniv($req->univName)){
+                $res->isSuccess = FALSE;
+                $res->code = 209;
+                $res->message = "존재하지 않는 대학교입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            }else if(!isValidYearForm($req->univYear)){
+                $res->isSuccess = FALSE;
+                $res->code = 210;
+                $res->message = "잘못된 학번 형식입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            }
+
+
+            postUser($req->userID,$req->pw,$req->userNickname,$req->phoneNum,$req->univName,$req->univYear,$req->email);
+            /*$result['유저ID']=$req->userID;
+            $result['닉네임']=$req->userNickname;
+            $result['휴대폰이름']=$req->phoneNum;
+            $result['대학이름']=$req->univName;
+            $result['학번']=$req->univYear;
+            $result['이메일']=$req->email;*/
+
+            $jwt = getJWToken($req->userID,$req->pw,JWT_SECRET_KEY);
+
+
+            $res->result["jwt"] = $jwt;
+
             $res->isSuccess = TRUE;
             $res->code = 100;
-            $res->message = "즐겨찾기 게시판 조회 성공";
-
+            $res->message = "회원 생성 성공";
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
+
+        /*
+         * API No. 2
+         * API Name : 로그인 API
+         * 마지막 수정 날짜 : 20.06.19
+        */
+        case "login":
+            http_response_code(200);
+
+            if(!isValidUser($req->userID,$req->pw)){
+                $res->isSuccess = FALSE;
+                $res->code = 201;
+                $res->message = "로그인 실패";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            }
+
+            $jwt = getJWToken($req->userID,$req->pw, JWT_SECRET_KEY);
+
+            $res->inf = login($req->userID,$req->pw);
+            $res->result["jwt:"] = $jwt;
+            $res->isSuccess = TRUE;
+            $res->code = 100;
+            $res->message = "로그인 성공";
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
+
+
     }
 } catch (\Exception $e) {
     return getSQLErrorException($errorLogs, $e, $req);

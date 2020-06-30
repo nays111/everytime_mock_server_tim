@@ -24,7 +24,12 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
 
 
     /* ******************   EveryTime   ****************** */
-    $r->addRoute('GET', '/myNotice', ['IndexController', 'getMyNotice']);
+    $r->addRoute('POST','/user',['IndexController','postUser']);
+    $r->addRoute('POST','/login',['IndexController','login']);
+
+    $r->addRoute('GET', '/myNotice', ['NoticeController', 'getMyNotice']);
+
+    $r->addRoute('GET', '/notice/{noticeIdx}/content', ['NoticeController', 'getContents']);
 
 
 //    $r->addRoute('GET', '/users', 'get_all_users_handler');
@@ -83,11 +88,11 @@ switch ($routeInfo[0]) {
                 $vars = $routeInfo[2];
                 require './controllers/MainController.php';
                 break;
-            /*case 'EventController':
+            case 'NoticeController':
                 $handler = $routeInfo[1][1]; $vars = $routeInfo[2];
-                require './controllers/EventController.php';
+                require './controllers/NoticeController.php';
                 break;
-            case 'ProductController':
+            /*case 'ProductController':
                 $handler = $routeInfo[1][1]; $vars = $routeInfo[2];
                 require './controllers/ProductController.php';
                 break;
