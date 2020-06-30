@@ -29,9 +29,11 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
 
     $r->addRoute('GET', '/myNotice', ['NoticeController', 'getMyNotice']);
 
-    $r->addRoute('GET', '/notice/{noticeIdx}/content', ['NoticeController', 'getContents']);
+    $r->addRoute('GET', '/notice/{noticeIdx}/contents', ['NoticeController', 'getContents']); //컨텐츠 리스트 조회 API
+    $r->addRoute('GET', '/notice/content/{contentIdx}', ['NoticeController', 'getContent']); //컨텐트 조회 API
 
 
+    $r->addRoute('GET', '/notice/content/{contentIdx}/comments', ['NoticeController', 'getComments']); //댓글 조회 API
 //    $r->addRoute('GET', '/users', 'get_all_users_handler');
 //    // {id} must be a number (\d+)
 //    $r->addRoute('GET', '/user/{id:\d+}', 'get_user_handler');

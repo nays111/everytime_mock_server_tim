@@ -117,6 +117,50 @@ function isRedundantEmail($email){
 
 }
 
+//유효한 notice index값인지 검사
+function isValidNotice($noticeIdx){
+    $pdo=pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM notice WHERE noticeIdx= ?) AS validNotice;";
+    $st = $pdo -> prepare($query);
+    $st->execute([$noticeIdx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["validNotice"]);
+
+}
+
+//유효한 content index 값인지 검사
+function isValidContent($contentIdx){
+    $pdo=pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM content WHERE contentIdx= ?) AS validContent;";
+    $st = $pdo -> prepare($query);
+    $st->execute([$contentIdx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["validContent"]);
+
+}
+
+
+function getUserIdx($userID){
+    $pdo = pdosqlConnect();
+    $query = "select userIdx from user where userID=?";
+    $st = $pdo -> prepare($query);
+    $st->execute([$userID]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return $res[0]['userIdx'];
+
+}
 
 function sendFcm($fcmToken, $data, $key, $deviceType)
 {

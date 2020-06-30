@@ -128,16 +128,17 @@ order by myNotice.createdAt;
 function getContents($noticeIdx){
     $pdo=pdoSqlConnect();
     $query = "
-    select (case when content.userStatus = 0 then \"익명\" else user.userNickname end)              as 작성자,
-       content.contentTitle                                                                 as 글제목,
-       content.contentInf                                                                   as 글내용,
-       noticeName                                                                           as 게시판이름,
+select (case when content.userStatus = 0 then \"익명\" else user.userNickname end)              as contentWriter,
+       content.contentTitle                                                                 as contentTitle,
+       content.contentInf                                                                   as contentInf,
+       noticeName                                                                           as noticeName,
        case
+           when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
            when timediff(now(), content.createdAt) < \"01:00:00\"
                then concat(minute(timediff(now(), content.createdAt)), '분전')
-           else date_format(content.createdAt, \"%m/%d %H:%i\") end                           as 작성날짜,
-       (select count(*) from contentLike where content.contentIdx = contentLike.contentIdx) as 좋아요개수,
-       (select count(*) from comment where comment.contentIdx = content.contentIdx)         as 댓글개수
+           else date_format(content.createdAt, \"%m/%d %H:%i\") end                           as writeDay,
+       (select count(*) from contentLike where content.contentIdx = contentLike.contentIdx) as countLike,
+       (select count(*) from comment where comment.contentIdx = content.contentIdx)         as countComment
 from user
          inner join content using (userIdx)
          inner join notice using (noticeIdx)
@@ -154,6 +155,70 @@ order by content.createdAt desc;
 
     return $res;
 }
+
+function getContent($contentIdx){
+    $pdo=pdoSqlConnect();
+    $query = "
+select (case when content.userStatus = 0 then \"익명\" else user.userNickname end)              as contentWriter,
+       content.contentTitle                                                                 as contentTitle,
+       content.contentInf                                                                   as contentInf,
+       noticeName                                                                           as noticeName,
+       case
+           when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
+           when timediff(now(), content.createdAt) < \"01:00:00\"
+               then concat(minute(timediff(now(), content.createdAt)), '분전')
+           else date_format(content.createdAt, \"%m/%d %H:%i\") end                           as writeDay,
+       (select count(*) from contentLike where content.contentIdx = contentLike.contentIdx) as countLike,
+       (select count(*) from comment where comment.contentIdx = content.contentIdx)         as countComment,
+       (select count(*) from everyTimeDB.scrab where scrab.contentIdx = content.contentIdx) as countScrap
+from user
+         inner join content using (userIdx)
+         inner join notice using (noticeIdx)
+where content.contentIdx = ?;
+";
+    $st = $pdo->prepare($query);
+    $st->execute([contentIdx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function getComments($userIdx,$contentIdx){
+    $pdo=pdoSqlConnect();
+    $query = "
+select comment.commentIdx,
+       comment.commentInf,
+       comment.parentIdx,
+       (case
+            when comment.userIdx = ? then \"익명(글쓴이)\"
+            when comment.userStatus = 0 then \"익명\"
+            else user.userNickname end)                                                     as commentWrite,
+       (select count(*) from commentLike where comment.contentIdx = commentLike.commentIdx) as commentCountLike,
+       case
+           when timediff(now(), comment.createdAt) < \"00:01:00\"
+               then '방금'
+           when timediff(now(), comment.createdAt) < \"01:00:00\"
+               then concat(minute(timediff(now(), comment.createdAt)), '분전')
+           else date_format(comment.createdAt, \"%m/%d %H:%i\") end                           as commentWriteDay
+from comment
+         inner join user using (userIdx)
+where comment.contentIdx = ?;
+";
+    $st = $pdo->prepare($query);
+    $st->execute([$userIdx,$contentIdx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
 
 // CREATE
 //    function addMaintenance($message){
