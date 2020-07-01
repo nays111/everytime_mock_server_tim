@@ -161,7 +161,7 @@ try {
 
             if(!isValidUser($req->userID,$req->pw)){
                 $res->isSuccess = FALSE;
-                $res->code = 201;
+                $res->code = 200;
                 $res->message = "로그인 실패";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
                 return;
@@ -170,7 +170,7 @@ try {
             $jwt = getJWToken($req->userID,$req->pw, JWT_SECRET_KEY);
 
             $res->inf = login($req->userID,$req->pw);
-            $res->result["jwt:"] = $jwt;
+            $res->result["jwt"] = $jwt;
             $res->isSuccess = TRUE;
             $res->code = 100;
             $res->message = "로그인 성공";

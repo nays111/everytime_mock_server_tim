@@ -30,10 +30,21 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('GET', '/myNotice', ['NoticeController', 'getMyNotice']);
 
     $r->addRoute('GET', '/notice/{noticeIdx}/contents', ['NoticeController', 'getContents']); //컨텐츠 리스트 조회 API
-    $r->addRoute('GET', '/notice/content/{contentIdx}', ['NoticeController', 'getContent']); //컨텐트 조회 API
+    $r->addRoute('GET', '/notice/content/{contentIdx}', ['NoticeController', 'getContent']); // 특정 컨텐트 조회 API
 
+    $r->addRoute('POST', '/notice/{noticeIdx}/content', ['NoticeController', 'postContent']); // 컨텐츠(게시물) 작성 API
 
     $r->addRoute('GET', '/notice/content/{contentIdx}/comments', ['NoticeController', 'getComments']); //댓글 조회 API
+
+
+
+    $r->addRoute('POST', '/myNotice', ['NoticeController', 'postMyNotice']); // 즐겨찾기 게시판 추가 API
+    $r->addRoute('POST', '/scrab', ['NoticeController', 'postScrab']); // 게시물(컨텐츠) 스크랩 추가 API
+    $r->addRoute('POST', '/contentLike', ['NoticeController', 'postContentLike']); // 게시물(컨텐츠) 좋아요 추가 API
+    $r->addRoute('POST', '/commentLike', ['NoticeController', 'postCommentLike']); // 댓글 좋아요 추가 API
+
+
+
 //    $r->addRoute('GET', '/users', 'get_all_users_handler');
 //    // {id} must be a number (\d+)
 //    $r->addRoute('GET', '/user/{id:\d+}', 'get_user_handler');
