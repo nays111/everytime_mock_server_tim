@@ -117,6 +117,9 @@ try {
 
             $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
 
+//글 제목과 내용 둘 다로 검색할 수 있기 때문에 하나만 사용
+            $contentInf=$_GET['contentInf']; //쿼리스트링 사용하기위하여 추가
+
             if($jwt){
                 // jwt 유효성 검사
                 if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
@@ -128,9 +131,7 @@ try {
                 }else{
                     $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
                     $userID = $userInfo->id;
-
-
-                    $noticeIdx = $vars["noticeIdx"];
+                    $noticeIdx = $vars["noticeIdx"];  //path Variable 사용하기 위해 추가
                     if (!isValidNotice($noticeIdx)) {
                         $res->isSuccess = FALSE;
                         $res->code = 202;
@@ -138,11 +139,33 @@ try {
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     }
-                    $res->result = getContents($noticeIdx);
-                    $res->isSuccess = TRUE;
-                    $res->code = 100;
-                    $res->message = "컨텐츠 목록 조회 성공";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    if($contentInf){
+                        if(!isValidContentTitleAndInf($contentInf,$contentInf)){
+                            $res->isSuccess = FALSE;
+                            $res->code = 203;
+                            $res->message = "검색 결과가 없습니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }elseif(!isset($contentInf)){ //// 이 부분 질문하기!!!!
+                            $res->isSuccess = FALSE;
+                            $res->code = 204;
+                            $res->message = "쿼리스트링값을 입력해주세요";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }
+                        $res->result = getContentsBySearch($noticeIdx,$contentInf,$contentInf);
+                        $res->isSuccess = TRUE;
+                        $res->code = 101;
+                        $res->message = "글제목, 내용 검색을 통해 컨텐츠 목록 조회 성공";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+
+                    }else{
+                        $res->result = getContents($noticeIdx);
+                        $res->isSuccess = TRUE;
+                        $res->code = 100;
+                        $res->message = "컨텐츠 목록 조회 성공";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                    }
                 }
             }else{
                 $res->code = 200;
@@ -549,7 +572,126 @@ try {
             }
             break;
 
+        /*
+        * API No.
+        * API Name : 내가 쓴 글 조회 API
+        * 마지막 수정 날짜 : 20.07.03
+        */
+        case "getMyContent":
 
+            http_response_code(200);
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+
+            if ($jwt) {
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+
+                } else {
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
+
+                    $res->result = getMyContent($userIdx);
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "내가 쓴 글 조회 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            break;
+
+        /*
+        * API No.
+        * API Name : 댓글 단 글 조회 API
+        * 마지막 수정 날짜 : 20.07.03
+        */
+        case "getMyComment":
+
+            http_response_code(200);
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+
+            if ($jwt) {
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+
+                } else {
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
+
+                    $res->result = getMyComment($userIdx);
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "댓글 단 글 조회 API";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            break;
+
+
+        /*
+        * API No.
+        * API Name : 스크랩한 글 조회 API
+        * 마지막 수정 날짜 : 20.07.03
+        */
+        case "getMyScrab":
+
+            http_response_code(200);
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+
+            if ($jwt) {
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+
+                } else {
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
+
+                    $res->result = getScrab($userIdx);
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "스크랩한 글 조회 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            break;
 
     }
 } catch (\Exception $e) {

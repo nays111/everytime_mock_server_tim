@@ -49,6 +49,9 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('POST', '/contentLike', ['NoticeController', 'postContentLike']); // 게시물(컨텐츠) 좋아요 추가 API
     $r->addRoute('POST', '/commentLike', ['NoticeController', 'postCommentLike']); // 댓글 좋아요 추가 API
 
+    $r->addRoute('GET', '/myContent', ['NoticeController', 'getMyContent']); // 내가 쓴 글 조회 API
+    $r->addRoute('GET', '/myComment', ['NoticeController', 'getMyComment']); // 댓글 단 글 조회 API
+    $r->addRoute('GET', '/myScrab', ['NoticeController', 'getMyScrab']); // 스크랩한 글 조회 API
 
 
 //    $r->addRoute('GET', '/users', 'get_all_users_handler');

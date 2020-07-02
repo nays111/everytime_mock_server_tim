@@ -47,7 +47,7 @@ order by myNotice.createdAt;
     return $res;
 }
 
-//게시물(컨텐츠) 리스트 조회
+//특정 게시판에 있는 게시물(컨텐츠) 리스트 조회
 function getContents($noticeIdx){
     $pdo=pdoSqlConnect();
     $query = "
@@ -83,6 +83,62 @@ order by content.createdAt desc;
 
     return $res;
 }
+
+//특정 게시판에서 검색을 통한 게시물(컨텐츠) 리스트 조회
+function getContentsBySearch($noticeIdx,$contentTitle,$contentInf){
+    $pdo=pdoSqlConnect();
+    $query = "
+select content.contentIdx                                                                                as contentIdx,  
+    (case when content.userStatus = 0 then \"익명\" else user.userNickname end)                          as contentWriter,
+       content.contentTitle                                                                             as contentTitle,
+       content.contentInf                                                                               as contentInf,
+       noticeName                                                                                       as noticeName,
+       (case
+            when content.contentThumbnailURL is null then \"사진없음\"
+            else content.contentThumbnailURL end)                                                       as contentThumbnailImage,
+       case
+           when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
+           when timediff(now(), content.createdAt) < \"01:00:00\"
+               then concat(minute(timediff(now(), content.createdAt)), '분전')
+           else date_format(content.createdAt, \"%m/%d %H:%i\") end                                       as writeDay,
+       (select count(*) from contentLike where content.contentIdx = contentLike.contentIdx)             as countLike,
+       (select count(*) from comment where comment.contentIdx = content.contentIdx)                     as countComment,
+       (select count(*) from contentURL where contentURL.contentIdx = content.contentIdx)               as countImage
+from user
+         inner join content using (userIdx)
+         inner join notice using (noticeIdx)
+where notice.noticeIdx = ? and (content.contentTitle like concat('%',?,'%') or content.contentInf like concat('%',?,'%'))
+order by content.createdAt desc;
+";
+    $st = $pdo->prepare($query);
+    $st->execute([$noticeIdx,$contentTitle,$contentInf]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+//글 제목, 내용을 검색할때 유효한 값인지 판단하기 위한 함수
+function isValidContentTitleAndInf($contentTitle,$contentInf){
+    $pdo = pdoSqlConnect();
+    $query = "
+        SELECT contentIdx 
+        FROM content 
+        WHERE content.contentTitle like concat('%',?,'%') or content.contentInf like concat('%',?,'%');";
+    $st = $pdo->prepare($query);
+    $st->execute([$contentTitle,$contentInf]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]);
+}
+
+
 
 //특정 게시물 (컨텐츠) 조회
 function getContent($contentIdx){
@@ -174,7 +230,7 @@ group by comment.commentIdx
 
     return $res;
 }
-//컨텐츠(게시물) 작성
+//컨텐츠(게시물) 작성 -> 사진 처리를 어떻게 해야할지 좀 더 고민해야댐
 function postContent($noticeIdx,$userIdx,$contentThumbnailURL,$contentTitle,$contentInf,$userStatus){
     $pdo = pdoSqlConnect();
     $query = "INSERT INTO content(noticeIdx,userIdx,contentThumbnailURL,contentTitle,contentInf,userStatus) VALUES (?,?,?,?,?,?)";
@@ -185,7 +241,7 @@ function postContent($noticeIdx,$userIdx,$contentThumbnailURL,$contentTitle,$con
     $st = null;
     $pdo = null;
 }
-//댓글 작성
+//댓글 작성 --> parentIdx를 어떻게 처리해야될지 좀 더 고민해야함
 function postComment($parentIdx, $contentIdx,$userIdx, $commentInf, $userStatus){
     $pdo = pdoSqlConnect();
     $query = "INSERT INTO comment(parentIdx,contentIdx,userIdx,commentInf,userStatus) VALUES (?,?,?,?,?)";
@@ -502,7 +558,7 @@ select
        noticeName                                                                           as noticeName,
        (case
             when content.contentThumbnailURL is null then \"사진없음\"
-            else content.contentThumbnailURL end)                                           as contentThumbnailImage,
+            else content.contentThumbnailURL end)                                           as contentThumbnailURL,
        case
            when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
            when timediff(now(), content.createdAt) < \"01:00:00\"
@@ -539,7 +595,7 @@ select distinct comment.contentIdx as contentIdx,
                 noticeName                                                                           as noticeName,
                 (case
                      when content.contentThumbnailURL is null then \"사진없음\"
-                     else content.contentThumbnailURL end)                                           as contentThumbnailImage,
+                     else content.contentThumbnailURL end)                                           as contentThumbnailURL,
                 case
                     when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
                     when timediff(now(), content.createdAt) < \"01:00:00\"
@@ -578,7 +634,7 @@ select distinct content.contentIdx                                              
                 noticeName                                                                           as noticeName,
                 (case
                      when content.contentThumbnailURL is null then \"사진없음\"
-                     else content.contentThumbnailURL end)                                           as contentThumbnailImage,
+                     else content.contentThumbnailURL end)                                           as contentThumbnailURL,
                 case
                     when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
                     when timediff(now(), content.createdAt) < \"01:00:00\"
