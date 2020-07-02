@@ -154,7 +154,7 @@ try {
         /*
          * API No. 2
          * API Name : 로그인 API
-         * 마지막 수정 날짜 : 20.06.19
+         * 마지막 수정 날짜 : 20.07.02
         */
         case "login":
             http_response_code(200);
@@ -169,14 +169,50 @@ try {
 
             $jwt = getJWToken($req->userID,$req->pw, JWT_SECRET_KEY);
 
-            $res->inf = login($req->userID,$req->pw);
+            $res->inf = login($req->userID,$req->pw); //pw필요없음
             $res->result["jwt"] = $jwt;
             $res->isSuccess = TRUE;
             $res->code = 100;
             $res->message = "로그인 성공";
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
+        /*
+          * API No.
+          * API Name : 광고 리스트 조회 API
+          * 마지막 수정 날짜 : 20.07.02
+         */
 
+
+        case "getAds":
+            http_response_code(200);
+
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+
+            if($jwt){
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+                }else{
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+
+
+                    $res->result = getAds();
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "광고 목록 조회 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                return;
+            }
+            break;
 
     }
 } catch (\Exception $e) {

@@ -1,6 +1,8 @@
 <?php
 require './pdos/DatabasePdo.php';
 require './pdos/IndexPdo.php';
+require './pdos/NoticePdo.php';
+require './pdos/TimetablePdo.php';
 require './vendor/autoload.php';
 
 use \Monolog\Logger as Logger;
@@ -26,8 +28,12 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     /* ******************   EveryTime   ****************** */
     $r->addRoute('POST','/user',['IndexController','postUser']);
     $r->addRoute('POST','/login',['IndexController','login']);
+    $r->addRoute('GET','/ads',['IndexController','getAds']); //광고 리스트 조회 API
 
-    $r->addRoute('GET', '/myNotice', ['NoticeController', 'getMyNotice']);
+    $r->addRoute('GET', '/myNotice', ['NoticeController', 'getMyNotice']); //즐겨찾기 게시판 리스트 조회 API
+    $r->addRoute('GET', '/notice-list', ['NoticeController', 'getNoticeList']); //게시판 리스트 조회 API
+
+    $r->addRoute('GET', '/notice', ['NoticeController', 'getNotice']); //
 
     $r->addRoute('GET', '/notice/{noticeIdx}/contents', ['NoticeController', 'getContents']); //컨텐츠 리스트 조회 API
     $r->addRoute('GET', '/notice/content/{contentIdx}', ['NoticeController', 'getContent']); // 특정 컨텐트 조회 API

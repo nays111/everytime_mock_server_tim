@@ -22,44 +22,48 @@ try {
             header('Content-Type: text/html; charset=UTF-8');
             getLogs("./logs/errors.log");
             break;
+
         /*
-         * API No. 0
-         * API Name : 테스트 API
-         * 마지막 수정 날짜 : 19.04.29
-         */
-        case "test":
+        * API No. 3
+        * API Name : 게시판 조회 API
+        * 마지막 수정 날짜 : 20.07.02
+        */
+        case "getNoticeList":
+
             http_response_code(200);
-            $res->result = test();
-            $res->isSuccess = TRUE;
-            $res->code = 100;
-            $res->message = "테스트 성공";
-            echo json_encode($res, JSON_NUMERIC_CHECK);
-            break;
-        /*
-         * API No. 0
-         * API Name : 테스트 Path Variable API
-         * 마지막 수정 날짜 : 19.04.29
-         */
-        case "testDetail":
-            http_response_code(200);
-            $res->result = testDetail($vars["testNo"]);
-            $res->isSuccess = TRUE;
-            $res->code = 100;
-            $res->message = "테스트 성공";
-            echo json_encode($res, JSON_NUMERIC_CHECK);
-            break;
-        /*
-         * API No. 0
-         * API Name : 테스트 Body & Insert API
-         * 마지막 수정 날짜 : 19.04.29
-         */
-        case "testPost":
-            http_response_code(200);
-            $res->result = testPost($req->name);
-            $res->isSuccess = TRUE;
-            $res->code = 100;
-            $res->message = "테스트 성공";
-            echo json_encode($res, JSON_NUMERIC_CHECK);
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+
+            if ($jwt) {
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+
+                } else {
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
+
+                    $univName = getUnivName($userID);
+                    $univIdx = getUnivIdx($univName);
+
+                    $res->result = getNotice($univIdx);
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "게시판 조회 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
             break;
 
 
