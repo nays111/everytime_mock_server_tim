@@ -26,32 +26,52 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
 
 
     /* ******************   EveryTime   ****************** */
-    $r->addRoute('POST','/user',['IndexController','postUser']);
-    $r->addRoute('POST','/login',['IndexController','login']);
+
+    /* ************************************************* 로그인 관련 기능 **************************************************** */
+    $r->addRoute('POST','/user',['IndexController','postUser']); //회원가입 API
+    $r->addRoute('POST','/login',['IndexController','login']); //로그인 API
+    $r->addRoute('GET','/user',['IndexController','getUser']); //유저 정보 조회 API
+    $r->addRoute('PATCH','/user',['IndexController','updateUser']); //유저 정보 변경 API (닉네임만 변경할 수 있음)
+    $r->addRoute('DELETE','/user',['IndexController','deleteUser']); //회원 탈퇴 API
+
+    /* ************************************************* 광고 관련 기능 **************************************************** */
     $r->addRoute('GET','/ads',['IndexController','getAds']); //광고 리스트 조회 API
 
-    $r->addRoute('GET', '/myNotice', ['NoticeController', 'getMyNotice']); //즐겨찾기 게시판 리스트 조회 API
-    $r->addRoute('GET', '/notice-list', ['NoticeController', 'getNoticeList']); //게시판 리스트 조회 API
+    /* ************************************************* 게시판 관련 기능 **************************************************** */
+    /* ****************** 홈 화면 관련 API *************** */
+    $r->addRoute('GET', '/myNotice', ['NoticeController', 'getMyNotice']); //즐겨찾기 게시판 리스트 조회 API (홈화면)
+    $r->addRoute('GET','/hot-content',['NoticeController','getHotContentHome']); // 핫 게시물 조회 API (홈화면)
+    $r->addRoute('GET','/popular-content',['NoticeController','getPopularContentHome']); // 실시간 인기글 조회 API (홈화면)
+    $r->addRoute('GET', '/notice-list', ['NoticeController', 'getNoticeList']); //전체 게시판 리스트 조회 API
+    $r->addRoute('POST', '/myNotice', ['NoticeController', 'postMyNotice']); // 즐겨찾기 게시판 추가/취소 API
+    $r->addRoute('GET', '/notice/{noticeIdx}/contents', ['NoticeController', 'getContentsByNotice']); //특정 게시판에서 컨텐츠(게시물) 리스트 조회 API -> 검색
+    $r->addRoute('GET', '/notice/contents', ['NoticeController', 'getContents']); // 전체 게시판에서 컨텐츠(게시물) 리스트 조회 API-> 내가 쓴 글 조회,댓글 단 글 조회, 스크랩한 글 조회, 핫 게시물 조회, 검색
 
-    $r->addRoute('GET', '/notice', ['NoticeController', 'getNotice']); //
-
-    $r->addRoute('GET', '/notice/{noticeIdx}/contents', ['NoticeController', 'getContents']); //컨텐츠 리스트 조회 API
-    $r->addRoute('GET', '/notice/content/{contentIdx}', ['NoticeController', 'getContent']); // 특정 컨텐트 조회 API
-
+    /* ******************* 컨텐츠(게시물) 관련 API *************** */
+    $r->addRoute('GET', '/notice/content/{contentIdx}', ['NoticeController', 'getContent']); // 컨텐츠(게시물) 조회 API
     $r->addRoute('POST', '/notice/{noticeIdx}/content', ['NoticeController', 'postContent']); // 컨텐츠(게시물) 작성 API
+    $r->addRoute('PATCH', '/notice/content/{contentIdx}', ['NoticeController', 'updateContent']); // 컨텐츠(게시물) 수정 API
+    $r->addRoute('DELETE', '/notice/content/{contentIdx}', ['NoticeController', 'deleteContent']); // 컨텐츠(게시물) 삭제 API
+    $r->addRoute('POST', '/scrab', ['NoticeController', 'postScrab']); // 컨텐츠(게시물) 스크랩 추가/취소 API
+    $r->addRoute('POST', '/contentLike', ['NoticeController', 'postContentLike']); // 컨텐츠(게시물) 좋아요 추가 API
 
+    /* ******************* 댓글 관련 API *********************** */
     $r->addRoute('GET', '/notice/content/{contentIdx}/comments', ['NoticeController', 'getComments']); //댓글 조회 API
-
-
-
-    $r->addRoute('POST', '/myNotice', ['NoticeController', 'postMyNotice']); // 즐겨찾기 게시판 추가 API
-    $r->addRoute('POST', '/scrab', ['NoticeController', 'postScrab']); // 게시물(컨텐츠) 스크랩 추가 API
-    $r->addRoute('POST', '/contentLike', ['NoticeController', 'postContentLike']); // 게시물(컨텐츠) 좋아요 추가 API
+    $r->addRoute('POST', '/notice/content/{contentIdx}/comment', ['NoticeController', 'postComment']); // 댓글 작성 API
+    $r->addRoute('PATCH', '/notice/content/comment/{commentIdx}', ['NoticeController', 'updateComment']); // 댓글 수정 API
+    $r->addRoute('DELETE', '/notice/content/comment/{commentIdx}', ['NoticeController', 'deleteComment']); // 댓글 삭제 API
     $r->addRoute('POST', '/commentLike', ['NoticeController', 'postCommentLike']); // 댓글 좋아요 추가 API
 
-    $r->addRoute('GET', '/myContent', ['NoticeController', 'getMyContent']); // 내가 쓴 글 조회 API
-    $r->addRoute('GET', '/myComment', ['NoticeController', 'getMyComment']); // 댓글 단 글 조회 API
-    $r->addRoute('GET', '/myScrab', ['NoticeController', 'getMyScrab']); // 스크랩한 글 조회 API
+
+    /* ************************************************* 시간표 관련 기능 **************************************************** */
+
+
+
+
+
+
+
+
 
 
 //    $r->addRoute('GET', '/users', 'get_all_users_handler');

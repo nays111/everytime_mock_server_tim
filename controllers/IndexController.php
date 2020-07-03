@@ -177,7 +177,146 @@ try {
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
         /*
-          * API No.
+        * API No. 3
+        * API Name : 유저 정보 조회 API
+        * 마지막 수정 날짜 : 20.07.03
+        */
+        case "getUser":
+
+            http_response_code(200);
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+
+            if ($jwt) {
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+
+                } else {
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
+
+                    $res->result = getUserInfo($userID);
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "유저 정보 조회 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            break;
+
+
+        /*
+       * API No. 4
+       * API Name : 유저 정보 변경 API
+       * 마지막 수정 날짜 : 20.07.04
+       */
+        case "updateUser":
+
+            http_response_code(200);
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+
+            if ($jwt) {
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+
+                } else {
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
+                    $userNickname = $req->userNickname;
+
+                    if(!isValidNickNameForm($userNickname)){
+                        $res->isSuccess = FALSE;
+                        $res->code = 202;
+                        $res->message = "닉네임을 2~7자리로 입력해주세요";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }else if(isRedundantNickname($userNickname)){
+                        $res->isSuccess = FALSE;
+                        $res->code = 203;
+                        $res->message = "이미 등록된 닉네임 입니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+
+                    updateUser($userNickname, $userID);
+
+                    $result[$userID] = $userID;
+                    $result[$userNickname]=$userNickname;
+                    $res->result = $result;
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "유저 정보 변경 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            break;
+        /*
+        * API No. 5
+        * API Name : 회원 탈퇴 API
+        * 마지막 수정 날짜 : 20.07.03
+        */
+        case "deleteUser":
+
+            http_response_code(200);
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+
+            if ($jwt) {
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+
+                } else {
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
+                    deleteUser($userID);
+                    $res->result = $userID;
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "회원 탈퇴 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            break;
+
+        /*
+          * API No. 6
           * API Name : 광고 리스트 조회 API
           * 마지막 수정 날짜 : 20.07.02
          */

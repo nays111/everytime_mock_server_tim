@@ -139,6 +139,123 @@ function getAds(){
     return $res;
 }
 
+function getUserInfo($userID){
+    $pdo = pdoSqlConnect();
+    $query = "
+select user.userNickname, user.userID, user.univName, concat(user.univYear, \"학번\") as univYear
+from user
+where userID = ?   
+    ";
+
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$userID]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function getUserNickname($userID){
+    $pdo = pdoSqlConnect();
+    $query = "
+select user.userNickname
+from user
+where userID = ?   
+    ";
+
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$userID]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+
+
+//유효한 대학 이름 인지 검사
+function isValidUniv($univName){
+    $pdo=pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM univ WHERE univName= ?) AS validUnivName;";
+    $st = $pdo -> prepare($query);
+    $st->execute([$univName]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["validUnivName"]);
+}
+
+//ID중복되는지 검사
+function isRedundantUserID($userID){
+    $pdo=pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM user WHERE userID= ?) AS rendundantUser;";
+    $st = $pdo -> prepare($query);
+    $st->execute([$userID]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["rendundantUser"]);
+}
+
+//중복된 닉네임인지 검사
+function isRedundantNickname($userNickname){
+    $pdo=pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM user WHERE userNickname= ?) AS redundantUserNickname;";
+    $st = $pdo -> prepare($query);
+    $st->execute([$userNickname]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["redundantUserNickname"]);
+}
+
+//중복된 이메일인지 검사
+function isRedundantEmail($email){
+    $pdo=pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM user WHERE email= ?) AS redundantEmail;";
+    $st = $pdo -> prepare($query);
+    $st->execute([$email]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["redundantEmail"]);
+}
+
+function updateUser($userNickname,$userID){
+    $pdo = pdoSqlConnect();
+    $query = "update user set userNickname=? where userID=?;";
+    $st = $pdo->prepare($query);
+    $st->execute([$userNickname,$userID]);
+
+    $st = null;
+    $pdo = null;
+}
+
+function deleteUser($userID){
+    $pdo = pdoSqlConnect();
+    $query = "delete from user where userID=?;";
+    $st = $pdo->prepare($query);
+    $st->execute([$userID]);
+
+    $st = null;
+    $pdo = null;
+}
 
 
 

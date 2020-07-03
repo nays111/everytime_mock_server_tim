@@ -51,27 +51,36 @@ order by myNotice.createdAt;
 function getContents($noticeIdx){
     $pdo=pdoSqlConnect();
     $query = "
-select content.contentIdx                                                                                as contentIdx,  
-    (case when content.userStatus = 0 then \"익명\" else user.userNickname end)                          as contentWriter,
-       content.contentTitle                                                                             as contentTitle,
-       content.contentInf                                                                               as contentInf,
-       noticeName                                                                                       as noticeName,
-       (case
-            when content.contentThumbnailURL is null then \"사진없음\"
-            else content.contentThumbnailURL end)                                                       as contentThumbnailImage,
-       case
-           when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
-           when timediff(now(), content.createdAt) < \"01:00:00\"
-               then concat(minute(timediff(now(), content.createdAt)), '분전')
-           else date_format(content.createdAt, \"%m/%d %H:%i\") end                                       as writeDay,
-       (select count(*) from contentLike where content.contentIdx = contentLike.contentIdx)             as countLike,
-       (select count(*) from comment where comment.contentIdx = content.contentIdx)                     as countComment,
-       (select count(*) from contentURL where contentURL.contentIdx = content.contentIdx)               as countImage
+select distinct content.contentIdx,
+                (case when content.userStatus = 0 then \"익명\" else user.userNickname end)              as contentWriter,
+                content.contentTitle                                                                 as contentTitle,
+                content.contentInf                                                                   as contentInf,
+                noticeName                                                                           as noticeName,
+                case
+                    when ((select contentURL
+                           from contentURL
+                           where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                             and contentURL.contentIdx = content.contentIdx)) is not null
+                        then (select contentURL
+                              from contentURL
+                              where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                                and contentURL.contentIdx = content.contentIdx)
+                    else null end                                                                       as contentThumbnailURL,
+                case
+                    when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
+                    when timediff(now(), content.createdAt) < \"01:00:00\"
+                        then concat(minute(timediff(now(), content.createdAt)), '분전')
+                    else date_format(content.createdAt, \" %m/%d %H:%i\") end                           as writeDay,
+                (select count(*) from contentLike where content.contentIdx = contentLike.contentIdx) as countLike,
+                (select count(*) from comment where comment.contentIdx = content.contentIdx)         as countComment,
+                (select count(*) from contentURL where contentURL.contentIdx = content.contentIdx)   as countImage
 from user
          inner join content using (userIdx)
          inner join notice using (noticeIdx)
+         left join contentURL using (contentIdx)
+
 where notice.noticeIdx = ?
-order by content.createdAt desc;
+order by writeDay desc;
 ";
     $st = $pdo->prepare($query);
     $st->execute([$noticeIdx]);
@@ -88,27 +97,37 @@ order by content.createdAt desc;
 function getContentsBySearch($noticeIdx,$contentTitle,$contentInf){
     $pdo=pdoSqlConnect();
     $query = "
-select content.contentIdx                                                                                as contentIdx,  
-    (case when content.userStatus = 0 then \"익명\" else user.userNickname end)                          as contentWriter,
-       content.contentTitle                                                                             as contentTitle,
-       content.contentInf                                                                               as contentInf,
-       noticeName                                                                                       as noticeName,
-       (case
-            when content.contentThumbnailURL is null then \"사진없음\"
-            else content.contentThumbnailURL end)                                                       as contentThumbnailImage,
-       case
-           when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
-           when timediff(now(), content.createdAt) < \"01:00:00\"
-               then concat(minute(timediff(now(), content.createdAt)), '분전')
-           else date_format(content.createdAt, \"%m/%d %H:%i\") end                                       as writeDay,
-       (select count(*) from contentLike where content.contentIdx = contentLike.contentIdx)             as countLike,
-       (select count(*) from comment where comment.contentIdx = content.contentIdx)                     as countComment,
-       (select count(*) from contentURL where contentURL.contentIdx = content.contentIdx)               as countImage
+select distinct content.contentIdx,
+                (case when content.userStatus = 0 then \"익명\" else user.userNickname end)              as contentWriter,
+                content.contentTitle                                                                 as contentTitle,
+                content.contentInf                                                                   as contentInf,
+                noticeName                                                                           as noticeName,
+                case
+                    when ((select contentURL
+                           from contentURL
+                           where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                             and contentURL.contentIdx = content.contentIdx)) is not null
+                        then (select contentURL
+                              from contentURL
+                              where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                                and contentURL.contentIdx = content.contentIdx)
+                    else null end                                                                       as contentThumbnailURL,
+                case
+                    when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
+                    when timediff(now(), content.createdAt) < \"01:00:00\"
+                        then concat(minute(timediff(now(), content.createdAt)), '분전')
+                    else date_format(content.createdAt, \"%m/%d %H:%i\") end                           as writeDay,
+                (select count(*) from contentLike where content.contentIdx = contentLike.contentIdx) as countLike,
+                (select count(*) from comment where comment.contentIdx = content.contentIdx)         as countComment,
+                (select count(*) from contentURL where contentURL.contentIdx = content.contentIdx)   as countImage
 from user
          inner join content using (userIdx)
          inner join notice using (noticeIdx)
-where notice.noticeIdx = ? and (content.contentTitle like concat('%',?,'%') or content.contentInf like concat('%',?,'%'))
-order by content.createdAt desc;
+         left join contentURL using (contentIdx)
+
+where notice.noticeIdx = ?
+  and (content.contentTitle like concat('%', ?, '%') or content.contentInf like concat('%', ?, '%'))
+order by writeDay desc;
 ";
     $st = $pdo->prepare($query);
     $st->execute([$noticeIdx,$contentTitle,$contentInf]);
@@ -120,6 +139,56 @@ order by content.createdAt desc;
 
     return $res;
 }
+
+
+//전체 게시판에서 검색을 통한 게시물(컨텐츠) 리스트 조회
+function getContentsAllBySearch($contentTitle,$contentInf){
+    $pdo=pdoSqlConnect();
+    $query = "
+select distinct content.contentIdx,
+                (case when content.userStatus = 0 then \"익명\" else user.userNickname end)              as contentWriter,
+                content.contentTitle                                                                 as contentTitle,
+                content.contentInf                                                                   as contentInf,
+                noticeName                                                                           as noticeName,
+                case
+                    when ((select contentURL
+                           from contentURL
+                           where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                             and contentURL.contentIdx = content.contentIdx)) is not null
+                        then (select contentURL
+                              from contentURL
+                              where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                                and contentURL.contentIdx = content.contentIdx)
+                    else null end                                                                       as contentThumbnailURL,
+                case
+                    when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
+                    when timediff(now(), content.createdAt) < \"01:00:00\"
+                        then concat(minute(timediff(now(), content.createdAt)), '분전')
+                    else date_format(content.createdAt, \"%m/%d %H:%i\") end                           as writeDay,
+                (select count(*) from contentLike where content.contentIdx = contentLike.contentIdx) as countLike,
+                (select count(*) from comment where comment.contentIdx = content.contentIdx)         as countComment,
+                (select count(*) from contentURL where contentURL.contentIdx = content.contentIdx)   as countImage
+from user
+         inner join content using (userIdx)
+         inner join notice using (noticeIdx)
+         left join contentURL using (contentIdx)
+
+where (content.contentTitle like concat('%', ?, '%') or content.contentInf like concat('%', ?, '%'))
+order by writeDay desc;
+";
+    $st = $pdo->prepare($query);
+    $st->execute([$contentTitle,$contentInf]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+
+
 
 //글 제목, 내용을 검색할때 유효한 값인지 판단하기 위한 함수
 function isValidContentTitleAndInf($contentTitle,$contentInf){
@@ -198,7 +267,6 @@ function getComments($userIdx,$contentIdx){
     $query = "
 select comment.commentIdx,
        comment.commentInf,
-       comment.parentIdx,
        (case
             when comment.userIdx = ? and comment.userStatus = 0 then \"익명(글쓴이)\"
             when comment.userStatus = 0 then concat(\"익명\", (select count(c.commentIdx) + 1
@@ -230,24 +298,68 @@ group by comment.commentIdx
 
     return $res;
 }
-//컨텐츠(게시물) 작성 -> 사진 처리를 어떻게 해야할지 좀 더 고민해야댐
-function postContent($noticeIdx,$userIdx,$contentThumbnailURL,$contentTitle,$contentInf,$userStatus){
+//게시글 작성
+function postContent($noticeIdx,$userIdx,$contentTitle,$contentInf,$userStatus){
     $pdo = pdoSqlConnect();
-    $query = "INSERT INTO content(noticeIdx,userIdx,contentThumbnailURL,contentTitle,contentInf,userStatus) VALUES (?,?,?,?,?,?)";
+    $query = "INSERT INTO content(noticeIdx,userIdx,contentTitle,contentInf,userStatus) VALUES (?,?,?,?,?)";
 
     $st = $pdo->prepare($query);
-    $st->execute([$noticeIdx,$userIdx,$contentThumbnailURL,$contentTitle,$contentInf,$userStatus]);
+    $st->execute([$noticeIdx,$userIdx,$contentTitle,$contentInf,$userStatus]);
 
     $st = null;
     $pdo = null;
 }
-//댓글 작성 --> parentIdx를 어떻게 처리해야될지 좀 더 고민해야함
-function postComment($parentIdx, $contentIdx,$userIdx, $commentInf, $userStatus){
+//게시글 수정
+function updateContent($contentTitle,$contentInf,$userStatus,$contentIdx){
     $pdo = pdoSqlConnect();
-    $query = "INSERT INTO comment(parentIdx,contentIdx,userIdx,commentInf,userStatus) VALUES (?,?,?,?,?)";
+    $query = "update content set contentTitle=?, contentInf=?, userStatus=? where contentIdx=?";
 
     $st = $pdo->prepare($query);
-    $st->execute([$parentIdx, $contentIdx,$userIdx, $commentInf, $userStatus]);
+    $st->execute([$contentTitle,$contentInf,$userStatus,$contentIdx]);
+
+    $st = null;
+    $pdo = null;
+}
+
+//게시글 삭제
+function deleteContent($contentIdx){
+    $pdo = pdoSqlConnect();
+    $query = "delete from content where contentIdx = ?;";
+    $st = $pdo->prepare($query);
+    $st->execute([$contentIdx]);
+
+    $st = null;
+    $pdo = null;
+}
+
+
+//댓글 작성
+function postComment($contentIdx,$userIdx, $commentInf, $userStatus){
+    $pdo = pdoSqlConnect();
+    $query = "INSERT INTO comment(contentIdx,userIdx,commentInf,userStatus) VALUES (?,?,?,?,?)";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$contentIdx,$userIdx, $commentInf, $userStatus]);
+
+    $st = null;
+    $pdo = null;
+}
+
+function updateComment($commentInf,$userStatus,$commentIdx){
+    $pdo = pdoSqlConnect();
+    $query = "update comment set commentInf=?, userStatus=? where commentIdx = ?";
+    $st = $pdo->prepare($query);
+    $st->execute([$commentInf,$userStatus,$commentIdx]);
+
+    $st = null;
+    $pdo = null;
+}
+//댓글 삭제
+function deleteComment($commentIdx){
+    $pdo = pdoSqlConnect();
+    $query = "delete from comment where commentIdx = ?";
+    $st = $pdo->prepare($query);
+    $st->execute([$commentIdx]);
 
     $st = null;
     $pdo = null;
@@ -325,62 +437,6 @@ function deleteScrab($userIdx,$contentIdx){
 }
 
 
-//유효한 대학 이름 인지 검사
-function isValidUniv($univName){
-    $pdo=pdoSqlConnect();
-    $query = "SELECT EXISTS(SELECT * FROM univ WHERE univName= ?) AS validUnivName;";
-    $st = $pdo -> prepare($query);
-    $st->execute([$univName]);
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
-    $st=null;
-    $pdo = null;
-
-    return intval($res[0]["validUnivName"]);
-}
-
-//ID중복되는지 검사
-function isRedundantUserID($userID){
-    $pdo=pdoSqlConnect();
-    $query = "SELECT EXISTS(SELECT * FROM user WHERE userID= ?) AS rendundantUser;";
-    $st = $pdo -> prepare($query);
-    $st->execute([$userID]);
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
-    $st=null;
-    $pdo = null;
-
-    return intval($res[0]["validUser"]);
-}
-
-//중복된 닉네임인지 검사
-function isRedundantNickname($userNickname){
-    $pdo=pdoSqlConnect();
-    $query = "SELECT EXISTS(SELECT * FROM user WHERE userNickname= ?) AS redundantUserNickname;";
-    $st = $pdo -> prepare($query);
-    $st->execute([$userNickname]);
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
-    $st=null;
-    $pdo = null;
-
-    return intval($res[0]["redundantUserNickname"]);
-}
-
-//중복된 이메일인지 검사
-function isRedundantEmail($email){
-    $pdo=pdoSqlConnect();
-    $query = "SELECT EXISTS(SELECT * FROM user WHERE email= ?) AS redundantEmail;";
-    $st = $pdo -> prepare($query);
-    $st->execute([$email]);
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
-    $st=null;
-    $pdo = null;
-
-    return intval($res[0]["redundantEmail"]);
-
-}
 
 //유효한 notice index값인지 검사
 function isValidNotice($noticeIdx){
@@ -397,7 +453,7 @@ function isValidNotice($noticeIdx){
 }
 
 
-
+//이미 즐겨찾기 됬는지 확인하기 위해서
 function isValidMyNotice($userIdx,$noticeIdx){
     $pdo=pdoSqlConnect();
     $query = "SELECT EXISTS(SELECT * FROM myNotice WHERE userIdx= ? and noticeIdx= ?) AS validMyNotice;";
@@ -411,6 +467,7 @@ function isValidMyNotice($userIdx,$noticeIdx){
     return intval($res[0]["validMyNotice"]);
 }
 
+//이미 스크랩된건지 확인하기위해서
 function isValidScrab($userIdx,$contentIdx){
     $pdo=pdoSqlConnect();
     $query = "SELECT EXISTS(SELECT * FROM scrab WHERE userIdx= ? and contentIdx= ?) AS validScrab;";
@@ -424,6 +481,7 @@ function isValidScrab($userIdx,$contentIdx){
     return intval($res[0]["validScrab"]);
 }
 
+//이미 댓글에 좋아요 되있는지 확인하기 위해서
 function isValidCommentLike($commentIdx,$userIdx){
     $pdo=pdoSqlConnect();
     $query = "SELECT EXISTS(SELECT * FROM commentLike WHERE commentIdx= ? and userIdx= ?) AS validCommentLike;";
@@ -437,6 +495,7 @@ function isValidCommentLike($commentIdx,$userIdx){
     return intval($res[0]["validCommentLike"]);
 }
 
+//이미 게시물에 좋아요 되있는지 확인하기 위해서
 function isValidContentLike($contentIdx,$userIdx){
     $pdo=pdoSqlConnect();
     $query = "SELECT EXISTS(SELECT * FROM contentLike WHERE contentIdx= ? and userIdx= ?) AS validContentLike;";
@@ -497,6 +556,7 @@ function getNoticeName($noticeIdx)
     return $res["noticeName"];
 }
 
+//대학이름으로 대학아이디가져오기
 function getUnivIdx($univName){
     $pdo = pdoSqlConnect();
     $st = $pdo->prepare('select univIdx from univ where univName = :univName');
@@ -508,6 +568,7 @@ function getUnivIdx($univName){
     return $res["univIdx"];
 }
 
+//유저아이디로 대학이름 가져오기
 function getUnivName($userID){
     $pdo = pdoSqlConnect();
     $st = $pdo->prepare('select univName from user where userID = :userID');
@@ -546,7 +607,7 @@ function getCommentInf($commentIdx){
     return $res["commentInf"];
 }
 
-//아직 적용안함
+//내가 쓴글
 function getMyContent($userIdx){
     $pdo=pdoSqlConnect();
     $query = "
@@ -556,9 +617,16 @@ select
        content.contentTitle                                                                 as contentTitle,
        content.contentInf                                                                   as contentInf,
        noticeName                                                                           as noticeName,
-       (case
-            when content.contentThumbnailURL is null then \"사진없음\"
-            else content.contentThumbnailURL end)                                           as contentThumbnailURL,
+       case
+                    when ((select contentURL
+                           from contentURL
+                           where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                             and contentURL.contentIdx = content.contentIdx)) is not null
+                        then (select contentURL
+                              from contentURL
+                              where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                                and contentURL.contentIdx = content.contentIdx)
+                    else null end                                                                       as contentThumbnailURL,
        case
            when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
            when timediff(now(), content.createdAt) < \"01:00:00\"
@@ -584,7 +652,7 @@ order by content.createdAt desc;
     return $res;
 }
 
-//아직 적용안함
+//댓글 단 글
 function getMyComment($userIdx){
     $pdo=pdoSqlConnect();
     $query = "
@@ -593,9 +661,16 @@ select distinct comment.contentIdx as contentIdx,
                 content.contentTitle                                                                 as contentTitle,
                 content.contentInf                                                                   as contentInf,
                 noticeName                                                                           as noticeName,
-                (case
-                     when content.contentThumbnailURL is null then \"사진없음\"
-                     else content.contentThumbnailURL end)                                           as contentThumbnailURL,
+                case
+                    when ((select contentURL
+                           from contentURL
+                           where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                             and contentURL.contentIdx = content.contentIdx)) is not null
+                        then (select contentURL
+                              from contentURL
+                              where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                                and contentURL.contentIdx = content.contentIdx)
+                    else null end                                                                       as contentThumbnailURL,
                 case
                     when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
                     when timediff(now(), content.createdAt) < \"01:00:00\"
@@ -632,9 +707,16 @@ select distinct content.contentIdx                                              
                 content.contentTitle                                                                 as contentTitle,
                 content.contentInf                                                                   as contentInf,
                 noticeName                                                                           as noticeName,
-                (case
-                     when content.contentThumbnailURL is null then \"사진없음\"
-                     else content.contentThumbnailURL end)                                           as contentThumbnailURL,
+               case
+                    when ((select contentURL
+                           from contentURL
+                           where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                             and contentURL.contentIdx = content.contentIdx)) is not null
+                        then (select contentURL
+                              from contentURL
+                              where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                                and contentURL.contentIdx = content.contentIdx)
+                    else null end                                                                       as contentThumbnailURL,
                 case
                     when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
                     when timediff(now(), content.createdAt) < \"01:00:00\"
@@ -662,13 +744,47 @@ order by writeDay desc;
 
     return $res;
 }
-//아직 적용안함 -> 이거는 홈 화면에 핫게시물 네개만 뜨는거
-function getHotContentHome(){
+//핫 게시물
+function getHotContent(){
     $pdo=pdoSqlConnect();
     $query = "
 select content.contentIdx                                                                   as contentIdx,
        content.contentTitle                                                                 as contentTitle,
        content.contentInf                                                                   as contentInf,
+       noticeName                                                                           as noticeName,
+       case
+           when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
+           when timediff(now(), content.createdAt) < \"01:00:00\"
+               then concat(minute(timediff(now(), content.createdAt)), '분전')
+           else date_format(content.createdAt, \"%m/%d %H:%i\") end                           as writeDay,
+       (select count(*) from contentLike where content.contentIdx = contentLike.contentIdx) as countLike,
+       (select count(*) from comment where comment.contentIdx = content.contentIdx)         as countComment,
+       (select count(*) from contentURL where contentURL.contentIdx = content.contentIdx)   as countImage
+from user
+         inner join content using (userIdx)
+         inner join notice using (noticeIdx)
+where (select count(*) from contentLike where content.contentIdx = contentLike.contentIdx) >= 10
+order by content.createdAt desc
+";
+    $st = $pdo->prepare($query);
+    $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+
+}
+
+
+//홈화면을 위한 핫게시물
+function getHotContentHome(){
+    $pdo=pdoSqlConnect();
+    $query = "
+select content.contentIdx                                                                   as contentIdx,
+       content.contentTitle                                                                 as contentTitle,
        noticeName                                                                           as noticeName,
        case
            when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
@@ -695,7 +811,7 @@ limit 4;
     return $res;
 }
 
-//아직 적용안함 -> 이거는 홈화면에 실시간 인기글 2개만 뜨는거
+// 홈화면에 실시간 인기글 2개만 뜨는거
 function getPopularContentHome(){
     $pdo=pdoSqlConnect();
     $query = "
@@ -710,7 +826,7 @@ from user
          inner join content using (userIdx)
          inner join notice using (noticeIdx)
 where timediff(now(), content.createdAt) < \"24:00:00\"
-order by 좋아요개수 desc
+order by countLike desc
 limit 2;
 ";
     $st = $pdo->prepare($query);
