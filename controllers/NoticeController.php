@@ -90,7 +90,7 @@ try {
                     $res->result = getHotContentHome($userIdx);
                     $res->isSuccess = TRUE;
                     $res->code = 100;
-                    $res->message = "내가 쓴 글 조회 성공";
+                    $res->message = "핫 게시물 조회 성공";
                     echo json_encode($res, JSON_NUMERIC_CHECK);
                 }
             }else{
@@ -130,7 +130,7 @@ try {
                     $res->result = getPopularContentHome();
                     $res->isSuccess = TRUE;
                     $res->code = 100;
-                    $res->message = "댓글 단 글 조회 API";
+                    $res->message = "실시간 인기글 조회 성공";
                     echo json_encode($res, JSON_NUMERIC_CHECK);
 
                 }
@@ -292,7 +292,7 @@ try {
                         }elseif(strlen($keyword)==0){
                             $res->isSuccess = FALSE;
                             $res->code = 204;
-                            $res->message = "쿼리스트링값을 입력해주세요";
+                            $res->message = "쿼리스트링이 null입니다";
                             echo json_encode($res, JSON_NUMERIC_CHECK);
                             return;
                         }
@@ -404,15 +404,15 @@ try {
                             return;
                         }else{
                             $res->isSuccess = FALSE;
-                            $res->code = 204;
-                            $res->message = "올바르지 않은 값";
+                            $res->code = 205;
+                            $res->message = "올바른 값을 입력하주세요";
                             echo json_encode($res, JSON_NUMERIC_CHECK);
                             return;
                         }
                     }else{
                         $res->isSuccess = FALSE;
-                        $res->code = 204;
-                        $res->message = "검색내용이 없습니다 (쿼리스트링 사용하여 검색하십시오)";
+                        $res->code = 206;
+                        $res->message = "쿼리스트링을 꼭 붙혀주세요";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     }
@@ -591,6 +591,12 @@ try {
                         $res->message = "해당 게시물은 존재하지 않습니다";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
+                    }elseif(isMyContent($contentIdx)!=$userIdx){
+                        $res->isSuccess = FALSE;
+                        $res->code = 206;
+                        $res->message = "본인이 쓰지 않은 댓글은 수정할 수 없습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
                     }
 
                     updateContent($req->contentTitle,$req->contentInf,$req->userStatus,$contentIdx);
@@ -639,6 +645,12 @@ try {
                         $res->isSuccess = FALSE;
                         $res->code = 202;
                         $res->message = "해당 게시물은 존재하지 않습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }elseif(isMyContent($contentIdx)!=$userIdx){
+                        $res->isSuccess = FALSE;
+                        $res->code = 203;
+                        $res->message = "본인이 쓰지 않은 댓글은 삭제할 수 없습니다";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     }
@@ -702,6 +714,13 @@ try {
                         $res->message = "스크랩을 취소했습니다";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
+                    }elseif(isMyContent($req->contentIdx)==$userIdx){
+                        $res->isSuccess = FALSE;
+                        $res->code = 203;
+                        $res->message = "내가 쓴 글은 스크랩할 수 없습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+
+                        return;
                     }
 
                     postScrab($userIdx,$req->contentIdx); // 스크랩 추가
@@ -757,6 +776,12 @@ try {
                         $res->isSuccess= FALSE;
                         $res->code=203;
                         $res->message = "이미 공감한 게시물입니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }else if(isMyContent($req->contentIdx)==$userIdx){
+                        $res->isSuccess= FALSE;
+                        $res->code=204;
+                        $res->message = "내가 쓴 글은 공감할 수 없습니다";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     }
@@ -889,70 +914,9 @@ try {
 
 
         /* ****************************************************************************************************************** */
+
         /*
          * API No. 22
-         * API Name : 댓글 수정 API
-         * 마지막 수정 날짜 : 20.07.04
-         */
-        case 'updateComment':
-            http_response_code(200);
-
-            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
-
-            if($jwt){
-                // jwt 유효성 검사
-                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
-                    $res->isSuccess = FALSE;
-                    $res->code = 201;
-                    $res->message = "유효하지 않은 토큰입니다";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-                    addErrorLogs($errorLogs, $res, $req);
-                }else{
-                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
-                    $userID = $userInfo->id;
-                    $userIdx = getUserIdx($userID);
-                    $commentIdx = $vars["commentIdx"];
-
-                    if(!isValidUserStatus($req->userStatus)) {
-                        $res->isSuccess = FALSE;
-                        $res->code = 205;
-                        $res->message = "익명 여부 체크가 잘못되었습니다";
-                        echo json_encode($res, JSON_NUMERIC_CHECK);
-                        return;
-                    }elseif ($req->commentInf==null){
-                        $res->isSuccess = FALSE;
-                        $res->code = 203;
-                        $res->message = "댓글 내용을 입력하세요";
-                        echo json_encode($res, JSON_NUMERIC_CHECK);
-                        return;
-                    }elseif (!isValidComment($commentIdx)) {
-                        $res->isSuccess = FALSE;
-                        $res->code = 202;
-                        $res->message = "해당 댓글은 존재하지 않습니다";
-                        echo json_encode($res, JSON_NUMERIC_CHECK);
-                        return;
-                    }
-
-                    updateComment($req->commentInf,$req->userStatus,$commentIdx);
-
-                    $result["commentIdx"]=$commentIdx;
-                    $res->result = $result;
-
-                    $res->isSuccess = TRUE;
-                    $res->code = 100;
-                    $res->message = "댓글 수정 성공";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-                }
-            }else{
-                $res->code = 200;
-                $res->message = "로그인이 필요합니다.";
-                return;
-            }
-            break;
-
-        /* ****************************************************************************************************************** */
-        /*
-         * API No. 23
          * API Name : 댓글 삭제 API
          * 마지막 수정 날짜 : 20.07.04
          */
@@ -979,6 +943,12 @@ try {
                         $res->isSuccess = FALSE;
                         $res->code = 202;
                         $res->message = "해당 댓글은 존재하지 않습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }elseif(isMyComment($commentIdx)!=$userIdx){
+                        $res->isSuccess = FALSE;
+                        $res->code = 203;
+                        $res->message = "본인이 쓰지 않은 댓글은 지울 수 없습니다";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     }
@@ -1040,6 +1010,12 @@ try {
                         $res->isSuccess= FALSE;
                         $res->code=203;
                         $res->message = "이미 공감한 댓글입니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }elseif(isMyComment($req->commentIdx)==$userIdx){
+                        $res->isSuccess= FALSE;
+                        $res->code=204;
+                        $res->message = "내가 쓴 댓글은 공감할 수 없습니다";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     }

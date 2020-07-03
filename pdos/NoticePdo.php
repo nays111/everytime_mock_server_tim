@@ -5,7 +5,17 @@
 //있는 모든 게시판이름만 조회
 function getNotice($univIdx){
     $pdo=pdoSqlConnect();
-    $query = "select noticeIdx, noticeName from notice where univIdx=?";
+    $query = "
+    select notice.noticeIdx,
+       notice.noticeName,
+       (case when (timediff(now(), content.createdAt) < \"12:00:00\") then \"new\" else 0 end) as checkNew
+from notice
+         inner join content using (noticeIdx)
+         inner join (select content.noticeIdx as ni, max(content.createdAt) as maxtime
+                     from content
+                     group by content.noticeIdx) as t1
+                    on t1.maxtime = content.createdAt and t1.ni = content.noticeIdx
+where univIdx = ?";
     $st = $pdo->prepare($query);
     $st->execute([$univIdx]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
@@ -336,7 +346,7 @@ function deleteContent($contentIdx){
 //댓글 작성
 function postComment($contentIdx,$userIdx, $commentInf, $userStatus){
     $pdo = pdoSqlConnect();
-    $query = "INSERT INTO comment(contentIdx,userIdx,commentInf,userStatus) VALUES (?,?,?,?,?)";
+    $query = "INSERT INTO comment(contentIdx,userIdx,commentInf,userStatus) VALUES (?,?,?,?)";
 
     $st = $pdo->prepare($query);
     $st->execute([$contentIdx,$userIdx, $commentInf, $userStatus]);
@@ -345,15 +355,7 @@ function postComment($contentIdx,$userIdx, $commentInf, $userStatus){
     $pdo = null;
 }
 
-function updateComment($commentInf,$userStatus,$commentIdx){
-    $pdo = pdoSqlConnect();
-    $query = "update comment set commentInf=?, userStatus=? where commentIdx = ?";
-    $st = $pdo->prepare($query);
-    $st->execute([$commentInf,$userStatus,$commentIdx]);
 
-    $st = null;
-    $pdo = null;
-}
 //댓글 삭제
 function deleteComment($commentIdx){
     $pdo = pdoSqlConnect();
@@ -435,7 +437,6 @@ function deleteScrab($userIdx,$contentIdx){
     $st = null;
     $pdo = null;
 }
-
 
 
 //유효한 notice index값인지 검사
@@ -606,6 +607,41 @@ function getCommentInf($commentIdx){
     $pdo = null;
     return $res["commentInf"];
 }
+function isMyContent($contentIdx){
+    $pdo=pdoSqlConnect();
+    $st = $pdo->prepare('select userIdx from content where contentIdx= :contentIdx;');
+    $st->bindParam(':contentIdx', $contentIdx);
+    $st->execute();
+    $res = $st->fetch();
+    $st = null;
+    $pdo = null;
+    return $res["userIdx"];
+}
+function isMyComment($commentIdx){
+    $pdo=pdoSqlConnect();
+    $st = $pdo->prepare('select userIdx from comment where commentIdx= :commentIdx;');
+    $st->bindParam(':commentIdx', $commentIdx);
+    $st->execute();
+    $res = $st->fetch();
+    $st = null;
+    $pdo = null;
+    return $res["userIdx"];
+}
+
+
+function isMyScrab($contentIdx){
+    $pdo=pdoSqlConnect();
+    $st = $pdo->prepare('select userIdx from scrab where contentIdx= :contentIdx;');
+    $st->bindParam(':contentIdx', $contentIdx);
+    $st->execute();
+    $res = $st->fetch();
+    $st = null;
+    $pdo = null;
+    return $res["userIdx"];
+}
+
+
+
 
 //내가 쓴글
 function getMyContent($userIdx){
@@ -785,7 +821,6 @@ function getHotContentHome(){
     $query = "
 select content.contentIdx                                                                   as contentIdx,
        content.contentTitle                                                                 as contentTitle,
-       noticeName                                                                           as noticeName,
        case
            when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
            when timediff(now(), content.createdAt) < \"01:00:00\"
@@ -821,7 +856,7 @@ select (case when content.userStatus = 0 then \"익명\" else user.userNickname 
        noticeName                                                                           as noticeName,
        date_format(content.createdAt, \"%m/%d %H:%i\")                                        as writeDay,
        (select count(*) from contentLike where content.contentIdx = contentLike.contentIdx) as countLike,
-       (select count(*) from comment where comment.contentIdx = content.contentIdx)         as commentLike
+       (select count(*) from comment where comment.contentIdx = content.contentIdx)         as countComment
 from user
          inner join content using (userIdx)
          inner join notice using (noticeIdx)

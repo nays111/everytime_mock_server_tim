@@ -245,7 +245,7 @@ try {
                     if(!isValidNickNameForm($userNickname)){
                         $res->isSuccess = FALSE;
                         $res->code = 202;
-                        $res->message = "닉네임을 2~7자리로 입력해주세요";
+                        $res->message = "변경할 닉네임을 2~7자리로 입력해주세요";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     }else if(isRedundantNickname($userNickname)){
@@ -258,8 +258,8 @@ try {
 
                     updateUser($userNickname, $userID);
 
-                    $result[$userID] = $userID;
-                    $result[$userNickname]=$userNickname;
+                    $result["userID"] = $userID;
+                    $result["userNickname"]=$userNickname;
                     $res->result = $result;
                     $res->isSuccess = TRUE;
                     $res->code = 100;
