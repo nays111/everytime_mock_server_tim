@@ -58,12 +58,13 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     /* ******************* 댓글 관련 API *********************** */
     $r->addRoute('GET', '/notice/content/{contentIdx}/comments', ['NoticeController', 'getComments']); //댓글 조회 API
     $r->addRoute('POST', '/notice/content/{contentIdx}/comment', ['NoticeController', 'postComment']); // 댓글 작성 API
-    $r->addRoute('PATCH', '/notice/content/comment/{commentIdx}', ['NoticeController', 'updateComment']); // 댓글 수정 API
     $r->addRoute('DELETE', '/notice/content/comment/{commentIdx}', ['NoticeController', 'deleteComment']); // 댓글 삭제 API
     $r->addRoute('POST', '/commentLike', ['NoticeController', 'postCommentLike']); // 댓글 좋아요 추가 API
 
 
     /* ************************************************* 시간표 관련 기능 **************************************************** */
+    $r->addRoute('GET', '/classes', ['TimetableController', 'getClasses']); //전체 강좌 조회 API
+    $r->addRoute('GET', '/class/{classIdx}', ['TimetableController', 'getClass']); //특정 강좌 조회 API
 
 
 
@@ -133,6 +134,10 @@ switch ($routeInfo[0]) {
             case 'NoticeController':
                 $handler = $routeInfo[1][1]; $vars = $routeInfo[2];
                 require './controllers/NoticeController.php';
+                break;
+            case 'TimetableController':
+                $handler = $routeInfo[1][1]; $vars = $routeInfo[2];
+                require './controllers/TimetableController.php';
                 break;
             /*case 'ProductController':
                 $handler = $routeInfo[1][1]; $vars = $routeInfo[2];

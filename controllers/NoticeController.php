@@ -223,6 +223,7 @@ try {
                         deleteMyNotice($userIdx,$req->noticeIdx); //즐겨찾기 해제
                         $result['noticeIdx']=$req->noticeIdx;
                         $result['noticeName']=$noticeName;
+                        $result['checkStatus']=0;
                         $res->result = $result;
                         $res->isSuccess= TRUE;
                         $res->code=101;
@@ -234,6 +235,7 @@ try {
                     postMyNotice($userIdx,$req->noticeIdx); // 즐겨찾기 추가
                     $result['noticeIdx']=$req->noticeIdx;
                     $result['noticeName']=$noticeName;
+                    $result['checkStatus']=1;
                     $res->result = $result;
 
                     $res->isSuccess = TRUE;
@@ -708,6 +710,7 @@ try {
                         deleteScrab($userIdx,$req->contentIdx); //스크랩 취소
                         $result['contentIdx']=$req->contentIdx;
                         $result['contentTitle']=$contentTitle;
+                        $result['checkStatus']=0;
                         $res->result = $result;
                         $res->isSuccess= TRUE;
                         $res->code=101;
@@ -726,6 +729,7 @@ try {
                     postScrab($userIdx,$req->contentIdx); // 스크랩 추가
                     $result['contentIdx']=$req->contentIdx;
                     $result['contentTitle']=$contentTitle;
+                    $result['checkStatus']=1;
                     $res->result = $result;
 
                     $res->isSuccess = TRUE;
@@ -789,6 +793,7 @@ try {
                     postContentLike($req->contentIdx,$userIdx); // 게시물 공감 추가
                     $result['contentIdx']=$req->contentIdx;
                     $result['contentTitle']=$contentTitle;
+                    $result['checkStatus']=1;
                     $res->result = $result;
 
                     $res->isSuccess = TRUE;
@@ -1023,6 +1028,7 @@ try {
                     postCommentLike($req->commentIdx,$userIdx); // 댓글 공감 추가
                     $result['commentIdx']=$req->commentIdx;
                     $result['commentInf']=$commentInf;
+                    $result['checkStatus']=1;
                     $res->result = $result;
 
                     $res->isSuccess = TRUE;

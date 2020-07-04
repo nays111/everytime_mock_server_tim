@@ -57,8 +57,14 @@ function isValidNickNameForm($userNickname){
 
 //학번 형식 검사
 function isValidYearForm($year){
-    return preg_match("/^[20]{2}[0-9]{2,4}/",$year); //2자리
+    return preg_match("/^[20]{2}[0-9]{2,4}/",$year); //4자리
 }
+
+//강좌코드 형식 검사
+function isValidClassCodeForm($code){
+    return preg_match("/^[20]{2}[0-9]{2,4}/",$code); //4자리
+}
+
 
 //유효한 익명여부값인지 체크하기
 function isValidUserStatus($userStatus){
