@@ -12,10 +12,10 @@ select class.classIdx
      , classType
      , classPoint
      , classPeople
-     , (select count(*) from myTimeTable where myTimeTable.classIdx = class.classIdx) as timeTablePeople
+     , (select count(*) from myTimeTable where myTimeTable.classIdx = class.classIdx and myTimeTable.status=0) as timeTablePeople
      , (select majorName from major where major.majorIdx = class.majorIdx)            as major
 from class
-where classIdx = ?
+where classIdx = ? and class.status=0
 ;";
 
 
@@ -38,7 +38,7 @@ where classIdx = ?
 //유효한 class index값인지 검사
 function isValidClass($classIdx){
     $pdo=pdoSqlConnect();
-    $query = "SELECT EXISTS(SELECT * FROM class WHERE classIdx= ?) AS validClass;";
+    $query = "SELECT EXISTS(SELECT * FROM class WHERE classIdx= ? and class.status=0) AS validClass;";
     $st = $pdo -> prepare($query);
     $st->execute([$classIdx]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
@@ -65,10 +65,11 @@ select class.classIdx
      , classPeople
      , classCode
      , professor
-     , truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx),
+     , truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx and classComment.status=0),
                 2)              as classStar
-     , (select count(*) from myTimeTable where myTimeTable.classIdx = class.classIdx) as timeTablePeople               
+     , (select count(*) from myTimeTable where myTimeTable.classIdx = class.classIdx and myTimeTable.status=0) as timeTablePeople               
 from class
+where class.status=0
 order by classIdx
 ;";
 
@@ -102,11 +103,11 @@ select class.classIdx
      , classPeople
      , classCode
      , professor
-     , truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx),
+     , truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx and classComment.status=0),
                 2)              as classStar
-     , (select count(*) from myTimeTable where myTimeTable.classIdx = class.classIdx) as timeTablePeople                
+     , (select count(*) from myTimeTable where myTimeTable.classIdx = class.classIdx and myTimeTable.status=0) as timeTablePeople                
 from class
-where className like concat('%', ?, '%')
+where className like concat('%', ?, '%') and class.status=0
 order by classIdx
 ;";
 
@@ -139,11 +140,11 @@ select class.classIdx
      , classPeople
      , classCode
      , professor
-     , truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx),
+     , truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx and classComment.status=0),
                 2)              as classStar
-     , (select count(*) from myTimeTable where myTimeTable.classIdx = class.classIdx) as timeTablePeople                
+     , (select count(*) from myTimeTable where myTimeTable.classIdx = class.classIdx and myTimeTable.status=0) as timeTablePeople                
 from class
-where professor like concat('%', ?, '%')
+where professor like concat('%', ?, '%') and class.status=0
 order by classIdx
 ;";
 
@@ -176,11 +177,11 @@ select class.classIdx
      , classPeople
      , classCode
      , professor
-     , truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx),
+     , truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx and classComment.status=0),
                 2)              as classStar
-     , (select count(*) from myTimeTable where myTimeTable.classIdx = class.classIdx) as timeTablePeople                
+     , (select count(*) from myTimeTable where myTimeTable.classIdx = class.classIdx and myTimeTable.status=0) as timeTablePeople                
 from class
-where classCode like concat('%', ?, '%')
+where classCode like concat('%', ?, '%') and class.status=0
 order by classIdx
 ;";
 
@@ -213,11 +214,11 @@ select class.classIdx
      , classPeople
      , classCode
      , professor
-     , truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx),
+     , truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx and classComment.status=0),
                 2)              as classStar
-     , (select count(*) from myTimeTable where myTimeTable.classIdx = class.classIdx) as timeTablePeople                
+     , (select count(*) from myTimeTable where myTimeTable.classIdx = class.classIdx and myTimeTable.status=0) as timeTablePeople                
 from class
-where classRoom like concat('%', ?, '%')
+where classRoom like concat('%', ?, '%') and class.status=0
 order by classIdx
 ;";
 
@@ -279,7 +280,7 @@ select
               \" (\", classRoom, \")\") as classTime
 from class
          inner join classTime using (classIdx)
-where classIdx=?         
+where classIdx=? and class.status=0         
 group by classIdx, classDay
 order by classIdx, classDay desc;";
     $st = $pdo->prepare($query);
@@ -299,7 +300,7 @@ function isValidClassName($name){
     $query = "
         SELECT classIdx 
         FROM class 
-        WHERE class.className like concat('%',?,'%');";
+        WHERE class.className like concat('%',?,'%') and class.status=0;";
     $st = $pdo->prepare($query);
     $st->execute([$name]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
@@ -315,7 +316,7 @@ function isValidClassProfessor($professor){
     $query = "
         SELECT classIdx 
         FROM class 
-        WHERE class.professor like concat('%',?,'%');";
+        WHERE class.professor like concat('%',?,'%') and class.status=0;";
     $st = $pdo->prepare($query);
     $st->execute([$professor]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
@@ -348,7 +349,7 @@ function isValidClassCode($code){
     $query = "
         SELECT classIdx 
         FROM class 
-        WHERE class.classCode like concat('%',?,'%');";
+        WHERE class.classCode like concat('%',?,'%') and class.status=0;";
     $st = $pdo->prepare($query);
     $st->execute([$code]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
@@ -364,7 +365,7 @@ function isValidClassRoom($room){
     $query = "
         SELECT classIdx 
         FROM class 
-        WHERE class.classRoom like concat('%',?,'%');";
+        WHERE class.classRoom like concat('%',?,'%') and class.status=0;";
     $st = $pdo->prepare($query);
     $st->execute([$room]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
@@ -382,11 +383,12 @@ select
        classComment.classCommentIdx,
        class.className,
        class.professor,
-       classComment.classComentInf,
-       truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx),
+       classComment.classCommentInf,
+       truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx and classComment.status=0),
                 2) as classStar
 from classComment
          inner join class using (classIdx)
+where classComment.status=0 and class.status=0
 order by classComment.createdAt desc
 limit 4;
 ";
@@ -411,7 +413,7 @@ from myTimeTable
          inner join class using (classIdx)
 where year(now()) = myTimeTable.year
   and (case when month(now()) between 2 and 8 then 1 else 0 end) = myTimeTable.semester
-  and myTimeTable.userIdx = ?;
+  and myTimeTable.userIdx = ? and myTimeTable.status=0 and class.status=0;
 ";
     $st = $pdo->prepare($query);
     $st->execute([$userIdx]);
@@ -430,15 +432,15 @@ function getClassComments(){
 select classComment.classCommentIdx,
        class.className,
        class.professor,
-       classComment.classComentInf,
+       classComment.classCommentInf,
        concat(right(class.classYear, 2), '년', class.classSemester, '학기 수강자') as classStudent,
-       truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx),
+       truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx and classComment.status=0),
                 2)                                                  as classStar
 from classComment
          inner join class using (classIdx)
 where classComment.createdAt =
       (select max(t1.createdAt) from classComment as t1 where t1.classIdx = classComment.classIdx)
-      and classComment.status=0
+      and classComment.status=0 and class.status=0
 order by classComment.createdAt desc;
 ";
     $st = $pdo->prepare($query);
@@ -500,7 +502,7 @@ function isRedundandClassComment($userIdx,$classIdx){
     $query = "
         SELECT classCommentIdx 
         FROM classComment 
-        WHERE classComment.userIdx=? and classComment.classIdx=?;";
+        WHERE classComment.userIdx=? and classComment.classIdx=? and classComment.status=0;";
     $st = $pdo->prepare($query);
     $st->execute([$userIdx,$classIdx]);
     $st->setFetchMode(PDO::FETCH_ASSOC);

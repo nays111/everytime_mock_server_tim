@@ -516,7 +516,7 @@ try {
                     if(mb_strlen($classCommentInf,'utf-8') < 10 or mb_strlen($classCommentInf,'utf-8') > 1000){
                         $res->isSuccess = FALSE;
                         $res->code = 204;
-                        $res->message = "좀 더 성의있는 내용 작성을 부탁드립니다 (10자 이상 입력하세요)";
+                        $res->message = "좀 더 성의있는 내용 작성을 부탁드립니다 (10~1000자)";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     }

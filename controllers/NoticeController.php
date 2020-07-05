@@ -468,9 +468,19 @@ try {
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     }
-                    $result = getContent($contentIdx);
-                    $result['contentImageURLList'] = $contentURL=getContentImage($contentIdx);
-                    $res->result = $result;
+                    //$temp = Array();
+                    //$temp2 = Array();
+
+                    $temp = getContent($contentIdx);
+                    $temp['contentImageURLList'] =getContentImage($contentIdx);
+                    //$result = array_merge(temp,temp2);
+
+                    /*foreach($result['contentImageURLList'] as $key => $value){
+                        settype($result['contentImageURLList'][$key]['contentImageIdx'], "integer");
+                    }*/
+
+
+                    $res->result = $temp;
                     $res->isSuccess = TRUE;
                     $res->code = 100;
                     $res->message = "컨텐츠 조회 성공";

@@ -255,10 +255,11 @@ where content.contentIdx = ?;
 function getContentImage($contentIdx){
     $pdo=pdoSqlConnect();
     $query = "
-select contentIdx, group_concat(contentURL separator ' ') as contentImage 
-from contentURL 
-where contentIdx=? 
-group by contentIdx;
+select contentURLIdx as contentImageIdx, contentURL.contentURL as contentImageURL
+from contentURL
+         right join content using (contentIdx)
+where contentURLIdx is not null
+  and contentIdx = ?
 ";
     $st = $pdo->prepare($query);
     $st->execute([$contentIdx]);
@@ -267,7 +268,6 @@ group by contentIdx;
 
     $st = null;
     $pdo = null;
-    $res = explode(' ', $res[0]['contentImage']);
     return $res;
 }
 
