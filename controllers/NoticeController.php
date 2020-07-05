@@ -291,10 +291,16 @@ try {
                             $res->message = "검색 결과가 없습니다";
                             echo json_encode($res, JSON_NUMERIC_CHECK);
                             return;
-                        }elseif(strlen($keyword)==0){
+                        }elseif(mb_strlen($keyword,'utf-8')==0){
                             $res->isSuccess = FALSE;
                             $res->code = 204;
                             $res->message = "쿼리스트링이 null입니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }elseif(mb_strlen($keyword,'utf-8')<2){
+                            $res->isSuccess = FALSE;
+                            $res->code = 207;
+                            $res->message = "두 글자 이상 입력해주세요";
                             echo json_encode($res, JSON_NUMERIC_CHECK);
                             return;
                         }
@@ -354,10 +360,16 @@ try {
                             $res->message = "검색 결과가 없습니다";
                             echo json_encode($res, JSON_NUMERIC_CHECK);
                             return;
-                        }elseif(strlen($keyword)==0){ //// 이 부분 질문하기!!!!
+                        }elseif(mb_strlen($keyword,'utf-8')==0){
                             $res->isSuccess = FALSE;
                             $res->code = 204;
                             $res->message = "쿼리스트링이 null입니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }elseif(mb_strlen($keyword,'utf-8')<2){
+                            $res->isSuccess = FALSE;
+                            $res->code = 207;
+                            $res->message = "두 글자 이상 입력해주세요";
                             echo json_encode($res, JSON_NUMERIC_CHECK);
                             return;
                         }

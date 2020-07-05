@@ -427,16 +427,18 @@ where year(now()) = myTimeTable.year
 function getClassComments(){
     $pdo=pdoSqlConnect();
     $query = "
-select
-       classComment.classCommentIdx,
+select classComment.classCommentIdx,
        class.className,
        class.professor,
        classComment.classComentInf,
        concat(right(class.classYear, 2), '년', class.classSemester, '학기 수강자') as classStudent,
        truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx),
-                2)                                                           as classStar
+                2)                                                  as classStar
 from classComment
          inner join class using (classIdx)
+where classComment.createdAt =
+      (select max(t1.createdAt) from classComment as t1 where t1.classIdx = classComment.classIdx)
+      and classComment.status=0
 order by classComment.createdAt desc;
 ";
     $st = $pdo->prepare($query);
@@ -476,4 +478,35 @@ order by classStar desc;
     $pdo = null;
 
     return $res;
+}
+
+
+
+//게시글 작성
+function postClassComment($userIdx,$classIdx,$selectStar,$selectHw,$selectTeam,$selectRate,$selectAtt,$selectTest,$selectSemester,$classCommentInf){
+    $pdo = pdoSqlConnect();
+    $query = "INSERT INTO classComment(userIdx,classIdx,selectStar,selectHw,selectTeam,selectRate,selectAtt,selectTest,selectSemester,classCommentInf) VALUES (?,?,?,?,?,?,?,?,?,?)";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$userIdx,$classIdx,$selectStar,$selectHw,$selectTeam,$selectRate,$selectAtt,$selectTest,$selectSemester,$classCommentInf]);
+
+    $st = null;
+    $pdo = null;
+}
+
+
+function isRedundandClassComment($userIdx,$classIdx){
+    $pdo = pdoSqlConnect();
+    $query = "
+        SELECT classCommentIdx 
+        FROM classComment 
+        WHERE classComment.userIdx=? and classComment.classIdx=?;";
+    $st = $pdo->prepare($query);
+    $st->execute([$userIdx,$classIdx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]);
 }

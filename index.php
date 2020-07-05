@@ -63,27 +63,21 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
 
 
     /* ************************************************* 시간표 관련 기능 **************************************************** */
-    $r->addRoute('GET', '/classes', ['TimetableController', 'getClasses']); //전체 강좌 조회 API
+    /* *******************강좌 및 강의평 관련 API **************** */
+    $r->addRoute('GET', '/class', ['TimetableController', 'getClasses']); //전체 강좌 조회 API
     $r->addRoute('GET', '/class/{classIdx}', ['TimetableController', 'getClass']); //특정 강좌 조회 API
-
-
-
-    $r->addRoute('GET', '/newClassComment', ['TimetableController', 'getNewClassComment']); //최근 강의평 조회 API(홈화면)
-    $r->addRoute('GET', '/myClasses', ['TimetableController', 'getMyClasses']); //시간표에 추가한 강좌 리스트 조회 API
-
-
-
-    $r->addRoute('GET', '/classComments', ['TimetableController', 'getClassComments']); //강의평 리스트 조회 API
-    $r->addRoute('GET', '/classComments/{classIdx}', ['TimetableController', 'getClassComment']); //강의평 상세 조회 API - 아직 못함
-
-
-
+    $r->addRoute('GET', '/new-classComment', ['TimetableController', 'getNewClassComment']); //최근 강의평 조회 API(홈화면)
+    $r->addRoute('GET', '/myClass', ['TimetableController', 'getMyClasses']); //시간표에 추가한 강좌 리스트 조회 API
+    $r->addRoute('GET', '/classComment', ['TimetableController', 'getClassComments']); //강의평 리스트 조회 API
     $r->addRoute('GET', '/class-list', ['TimetableController', 'getClassList']); //강좌 리스트 조회 API
+    $r->addRoute('GET', '/classComment/{classIdx}', ['TimetableController', 'getClassComment']); //강의평 상세 조회 API     -> 아직 못함
+
+    $r->addRoute('POST', '/class/{classIdx}/classComment', ['TimetableController', 'postClassComment']); // 강의평 작성 API
 
 
 
 
-
+    /* *******************시간표 관련 API **************** */
 
 
 
