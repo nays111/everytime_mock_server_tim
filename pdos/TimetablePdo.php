@@ -25,7 +25,7 @@ where classIdx = ?
     $st->setFetchMode(PDO::FETCH_ASSOC);
 
     while($row=$st->fetch()){
-        //$classIdx = $row['classIdx'];
+        $classIdx = $row['classIdx'];
         $row['time']= getClassesTime($classIdx);
 
         array_push($timeArray , $row);
@@ -244,7 +244,7 @@ order by classIdx
 function getClassesTime($classIdx){
     $pdo=pdoSqlConnect();
     $query = "
-select classIdx,
+select 
        concat(concat(classDay, concat((case
                                            when min(classTime) = 1 then \"09:00~\"
                                            when min(classTime) = 2 then \"10:00~\"
@@ -326,6 +326,23 @@ function isValidClassProfessor($professor){
     return intval($res[0]);
 }
 
+function isValidClassNameAndProfessor($professor,$className){
+    $pdo = pdoSqlConnect();
+    $query = "
+        SELECT classIdx 
+        FROM class 
+        WHERE class.professor like concat('%',?,'%') or class.className like concat('%',?,'%');";
+    $st = $pdo->prepare($query);
+    $st->execute([$professor,$className]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]);
+}
+
+
 function isValidClassCode($code){
     $pdo = pdoSqlConnect();
     $query = "
@@ -356,4 +373,107 @@ function isValidClassRoom($room){
     $pdo = null;
 
     return intval($res[0]);
+}
+
+function getNewClassComment(){
+    $pdo=pdoSqlConnect();
+    $query = "
+select 
+       classComment.classCommentIdx,
+       class.className,
+       class.professor,
+       classComment.classComentInf,
+       truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx),
+                2) as classStar
+from classComment
+         inner join class using (classIdx)
+order by classComment.createdAt desc
+limit 4;
+";
+    $st = $pdo->prepare($query);
+    $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+
+}
+
+//2월에서 8월 사이에는 1학기 시간표에 추가한 과목이 나타납니다, 9월에서 1월 사이에는 2학기 시간표에 추가한 과목이 나타납니다
+function getMyClasses($userIdx){
+    $pdo=pdoSqlConnect();
+    $query = "
+select class.classIdx,class.className, class.professor
+from myTimeTable
+         inner join class using (classIdx)
+where year(now()) = myTimeTable.year
+  and (case when month(now()) between 2 and 8 then 1 else 0 end) = myTimeTable.semester
+  and myTimeTable.userIdx = ?;
+";
+    $st = $pdo->prepare($query);
+    $st->execute([$userIdx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function getClassComments(){
+    $pdo=pdoSqlConnect();
+    $query = "
+select
+       classComment.classCommentIdx,
+       class.className,
+       class.professor,
+       classComment.classComentInf,
+       concat(right(class.classYear, 2), '년', class.classSemester, '학기 수강자') as classStudent,
+       truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx),
+                2)                                                           as classStar
+from classComment
+         inner join class using (classIdx)
+order by classComment.createdAt desc;
+";
+    $st = $pdo->prepare($query);
+    $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+
+function getClassList($keyword){
+    $pdo=pdoSqlConnect();
+    $query = "
+select distinct class.classIdx,
+                class.className,
+                class.professor,
+                truncate((select ifnull(avg(selectStar), 0)
+                          from classComment
+                          where classComment.classIdx = class.classIdx),
+                         2) as classStar
+from class
+         left outer join classComment using (classIdx)
+where class.className like concat('%', ?, '%')
+   or class.professor like concat('%', ?, '%')
+order by classStar desc;
+";
+    $st = $pdo->prepare($query);
+    $st->execute([$keyword,$keyword]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
 }
