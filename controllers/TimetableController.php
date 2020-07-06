@@ -662,14 +662,98 @@ try {
                 return;
             }
             break;
+        /* ****************************************************************************************************************** */
 
+        /*
+         * API No. 33
+         * API Name : 내 시간표 목록 조회 API
+         * 마지막 수정 날짜 : 20.07.07
+         */
+        case "getTimeTableList":
+            http_response_code(200);
 
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+            $year=$_GET['year']; //년도
+            $semester=$_GET['semester']; //학기
 
+            if($jwt){
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+                }else{
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
 
+                    $result = getMyTimeTableList($userIdx);
 
+                    $res->result = $result;
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "내 시간표 목록 조회 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                return;
+            }
+            break;
 
         /* ****************************************************************************************************************** */
-        /* ****************************************************************************************************************** */
+        /*
+         * API No. 34
+         * API Name : 내 시간표 상세 조회 API
+         * 마지막 수정 날짜 : 20.07.07
+         */
+        case "getTimeTable":
+            http_response_code(200);
+
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+
+
+            if($jwt){
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+                }else{
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
+                    $timeTableIdx = $vars["timeTableIdx"];
+
+                    if(!isValidTimeTable($timeTableIdx)){
+                        $res->isSuccess = FALSE;
+                        $res->code = 202;
+                        $res->message = "해당 시간표는 존재하지 않습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+
+                    $result = getTimeTable($timeTableIdx,$userIdx);
+                    //$result["0"] = getMyTimeTableInf($userIdx,$timeTableIdx);
+                    $res->result = $result;
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "내 시간표 목록 조회 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                return;
+            }
+            break;
+
         /* ****************************************************************************************************************** */
         /* ****************************************************************************************************************** */
         /* ****************************************************************************************************************** */

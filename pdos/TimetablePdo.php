@@ -441,12 +441,15 @@ limit 4;
 function getMyClasses($userIdx){
     $pdo=pdoSqlConnect();
     $query = "
-select class.classIdx,class.className, class.professor
-from myTimeTable
+select class.classIdx, class.className, class.professor
+from timeTable
+         inner join myTimeTable using (timeTableIdx)
          inner join class using (classIdx)
-where year(now()) = myTimeTable.year
-  and (case when month(now()) between 2 and 8 then 1 else 0 end) = myTimeTable.semester
-  and myTimeTable.userIdx = ? and myTimeTable.status=0 and class.status=0;
+where year(now()) = timeTable.year
+  and (case when month(now()) between 2 and 8 then 1 else 0 end) = timeTable.semester
+  and timeTable.userIdx = ?
+  and timeTable.status = 0 and myTimeTable.status=0
+  and class.status = 0;
 ";
     $st = $pdo->prepare($query);
     $st->execute([$userIdx]);
@@ -562,4 +565,80 @@ function postClassCommentLike($userIdx,$classCommentIdx){
 
     $st = null;
     $pdo = null;
+}
+
+function getTimeTable($timeTableIdx,$userIdx){
+    $pdo=pdoSqlConnect();
+    $query = "
+select  class.classIdx, class.className, class.classRoom, classTime.classDay, classTime.classTime
+from timeTable
+         inner join myTimeTable using (timeTableIdx)
+         inner join class using (classIdx)
+         inner join classTime using (classIdx)
+where timeTableIdx = ?
+  and myTimeTable.userIdx = ?
+  and timeTable.status = 0
+";
+    $st = $pdo->prepare($query);
+    $st->execute([$timeTableIdx,$userIdx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function getMyTimeTableList($userIdx){
+    $pdo=pdoSqlConnect();
+    $query = "
+select timeTableIdx, concat(year, \"년 \", semester, \"학기\") as timeTableYear, name as timeTableName
+from timeTable
+where userIdx = ?
+  and status = 0
+";
+    $st = $pdo->prepare($query);
+    $st->execute([$userIdx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function getMyTimeTableInf($userIdx,$timeTableIdx){
+    $pdo=pdoSqlConnect();
+    $query = "
+select  concat(year, \"년 \", semester, \"학기\") as timeTableYear, name as timeTableName
+from timeTable
+where userIdx = ? and timeTableIdx=?
+  and status = 0
+";
+    $st = $pdo->prepare($query);
+    $st->execute([$userIdx,$timeTableIdx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+
+
+function isValidTimeTable($timeTableIdx){
+    $pdo=pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM timeTable WHERE timeTableIdx= ? and timeTable.status=0) AS validTimeTable;";
+    $st = $pdo -> prepare($query);
+    $st->execute([$timeTableIdx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["validTimeTable"]);
 }

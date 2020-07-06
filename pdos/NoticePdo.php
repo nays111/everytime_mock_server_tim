@@ -88,7 +88,6 @@ from user
          inner join content using (userIdx)
          inner join notice using (noticeIdx)
          left join contentURL using (contentIdx)
-
 where notice.noticeIdx = ?
 order by writeDay desc;
 ";
@@ -134,7 +133,6 @@ from user
          inner join content using (userIdx)
          inner join notice using (noticeIdx)
          left join contentURL using (contentIdx)
-
 where notice.noticeIdx = ?
   and (content.contentTitle like concat('%', ?, '%') or content.contentInf like concat('%', ?, '%'))
 order by writeDay desc;
@@ -182,7 +180,6 @@ from user
          inner join content using (userIdx)
          inner join notice using (noticeIdx)
          left join contentURL using (contentIdx)
-
 where (content.contentTitle like concat('%', ?, '%') or content.contentInf like concat('%', ?, '%'))
 order by writeDay desc;
 ";
@@ -296,7 +293,6 @@ from comment
          inner join user using (userIdx)
 where comment.contentIdx = ?
 group by comment.commentIdx
-
 ";
     $st = $pdo->prepare($query);
     $st->execute([$userIdx,$userIdx,$contentIdx]);
