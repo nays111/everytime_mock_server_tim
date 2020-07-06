@@ -73,7 +73,7 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('GET', '/classComment/{classIdx}', ['TimetableController', 'getClassComment']); //강의평 상세 조회 API     -> 아직 못함
 
     $r->addRoute('POST', '/class/{classIdx}/classComment', ['TimetableController', 'postClassComment']); // 강의평 작성 API
-
+    $r->addRoute('POST', '/classCommentLike', ['TimetableController', 'postClassCommentLike']); // 강의평 좋아요 추가 API
 
 
 

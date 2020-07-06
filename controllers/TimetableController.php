@@ -606,11 +606,68 @@ try {
             }
             break;
 
-
-
-
-
         /* ****************************************************************************************************************** */
+        /*
+         * API No. 32
+         * API Name : 강의평 좋아요 추가 API
+         * 마지막 수정 날짜 : 20.07.06
+         */
+        case "postClassCommentLike":
+            http_response_code(200);
+
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+
+            if($jwt){
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+                }else{
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
+                    if(!isValidClassComment($req->classCommentIdx)){
+                        $res->isSuccess = FALSE;
+                        $res->code = 202;
+                        $res->message = "해당 강의평이 없습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }elseif(isRedundantClassCommentLike($req->classCommentIdx,$userIdx)){
+                        $res->isSuccess = FALSE;
+                        $res->code = 203;
+                        $res->message = "이미 좋아요한 강의평입니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }elseif(isMyClassComment($req->classCommentIdx)==$userIdx){
+                        $res->isSuccess = FALSE;
+                        $res->code = 204;
+                        $res->message = "본인이 쓴 강의평에는 좋아요를 누를 수 없습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+
+
+                    postClassCommentLike($userIdx,$req->classCommentIdx); // 수강평 공감 추가
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "강의평 좋아요 추가 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                return;
+            }
+            break;
+
+
+
+
+
+
         /* ****************************************************************************************************************** */
         /* ****************************************************************************************************************** */
         /* ****************************************************************************************************************** */

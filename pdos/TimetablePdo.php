@@ -38,21 +38,54 @@ where classIdx = ? and class.status=0
 //유효한 class index값인지 검사
 function isValidClass($classIdx){
     $pdo=pdoSqlConnect();
-    $query = "SELECT EXISTS(SELECT * FROM class WHERE classIdx= ? and class.status=0) AS validClass;";
+$query = "SELECT EXISTS(SELECT * FROM class WHERE classIdx= ? and class.status=0) AS validClass;";
+$st = $pdo -> prepare($query);
+$st->execute([$classIdx]);
+$st->setFetchMode(PDO::FETCH_ASSOC);
+$res = $st->fetchAll();
+$st=null;
+$pdo = null;
+
+return intval($res[0]["validClass"]);
+}
+
+function isValidClassComment($classCommentIdx){
+    $pdo=pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM classComment WHERE classCommentIdx= ? and classComment.status=0) AS validClassComment;";
     $st = $pdo -> prepare($query);
-    $st->execute([$classIdx]);
+    $st->execute([$classCommentIdx]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
     $st=null;
     $pdo = null;
 
-    return intval($res[0]["validClass"]);
+    return intval($res[0]["validClassComment"]);
 }
 
+//이미 수강평에 좋아요 되있는지 확인하기 위해서
+function isRedundantClassCommentLike($classCommentIdx,$userIdx){
+    $pdo=pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM classCommentLike WHERE classCommentIdx= ? and userIdx= ?) AS redundantClassCommentLike;";
+    $st = $pdo -> prepare($query);
+    $st->execute([$classCommentIdx,$userIdx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
 
-
-
-
+    return intval($res[0]["redundantClassCommentLike"]);
+}
+//내가 쓴 수강평인지 확인하기 위해서
+function isMyClassComment($classCommentIdx){
+    $pdo=pdoSqlConnect();
+    $st = $pdo->prepare('select userIdx from classComment where classCommentIdx= :classCommentIdx;');
+    $st->bindParam(':classCommentIdx', $classCommentIdx);
+    $st->execute();
+    $res = $st->fetch();
+    $st = null;
+    $pdo = null;
+    return $res["userIdx"];
+}
 
 function getClasses(){
     $pdo=pdoSqlConnect();
@@ -433,14 +466,21 @@ select classComment.classCommentIdx,
        class.className,
        class.professor,
        classComment.classCommentInf,
-       concat(right(class.classYear, 2), '년', class.classSemester, '학기 수강자') as classStudent,
-       truncate((select ifnull(avg(selectStar), 0) from classComment where classComment.classIdx = class.classIdx and classComment.status=0),
-                2)                                                  as classStar
+       concat(right(class.classYear, 2), '년', class.classSemester, '학기 수강자')                                         as classStudent,
+       truncate((select ifnull(avg(selectStar), 0)
+                 from classComment
+                 where classComment.classIdx = class.classIdx
+                   and classComment.status = 0),
+                2)                                                                                                   as classStar,
+       (select count(*)
+        from classCommentLike
+        where classCommentLike.classCommentIdx = classComment.classCommentIdx)                                       as classCommentLike
 from classComment
          inner join class using (classIdx)
 where classComment.createdAt =
       (select max(t1.createdAt) from classComment as t1 where t1.classIdx = classComment.classIdx)
-      and classComment.status=0 and class.status=0
+  and classComment.status = 0
+  and class.status = 0
 order by classComment.createdAt desc;
 ";
     $st = $pdo->prepare($query);
@@ -497,7 +537,7 @@ function postClassComment($userIdx,$classIdx,$selectStar,$selectHw,$selectTeam,$
 }
 
 
-function isRedundandClassComment($userIdx,$classIdx){
+function isRedundantClassComment($userIdx,$classIdx){
     $pdo = pdoSqlConnect();
     $query = "
         SELECT classCommentIdx 
@@ -511,4 +551,15 @@ function isRedundandClassComment($userIdx,$classIdx){
     $pdo = null;
 
     return intval($res[0]);
+}
+
+function postClassCommentLike($userIdx,$classCommentIdx){
+    $pdo = pdoSqlConnect();
+    $query = "INSERT INTO classCommentLike(userIdx, classCommentIdx) VALUES (?,?)";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$userIdx,$classCommentIdx]);
+
+    $st = null;
+    $pdo = null;
 }
