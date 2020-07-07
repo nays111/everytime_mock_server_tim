@@ -78,8 +78,10 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
 
 
     /* *******************시간표 관련 API **************** */
-    $r->addRoute('GET', '/timeTable', ['TimetableController', 'getTimeTableList']); //강좌 리스트 조회 API
-    $r->addRoute('GET', '/timeTable/{timeTableIdx}', ['TimetableController', 'getTimeTable']); //강좌 리스트 조회 API
+    $r->addRoute('GET', '/timeTable', ['TimetableController', 'getTimeTableList']); //내 시간표 목록 조회 API
+    $r->addRoute('GET', '/timeTable/{timeTableIdx}', ['TimetableController', 'getTimeTable']); //내 시간표 조회 API
+    $r->addRoute('POST', '/timeTable/{timeTableIdx}/class', ['TimetableController', 'postMyTimeTable']); // 시간표에 수업 추가 API
+
 
 
 

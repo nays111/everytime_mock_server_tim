@@ -642,3 +642,54 @@ function isValidTimeTable($timeTableIdx){
 
     return intval($res[0]["validTimeTable"]);
 }
+
+function postMyTimeTable($userIdx,$timeTableIdx,$classIdx){
+        $pdo = pdoSqlConnect();
+        $query = "INSERT INTO myTimeTable(userIdx,timeTableIdx,classIdx) VALUES (?,?,?)";
+
+        $st = $pdo->prepare($query);
+        $st->execute([$userIdx,$timeTableIdx,$classIdx]);
+
+        $st = null;
+        $pdo = null;
+}
+
+function isRedundantClassInMyTimeTable($timeTableIdx,$classIdx){
+    $pdo=pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM myTimeTable WHERE timeTableIdx= ? and classIdx=? and status=0) AS redundantClassInMyTimeTable;";
+    $st = $pdo -> prepare($query);
+    $st->execute([$timeTableIdx,$classIdx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["redundantClassInMyTimeTable"]);
+}
+
+function isRedundantClassTimeMyTimeTable($classIdx,$userIdx,$timeTableIdx){
+    $pdo=pdoSqlConnect();
+    $query = "
+select exists(select t1.className, t1.classDay, t1.classTime, t2.className, t2.classDay, t2.classTime
+              from (select classIdx, className, classDay, classTime
+                    from class
+                             inner join classTime using (classIdx)
+                    where classIdx = ?
+                      and class.status = 0) as t1
+                       inner join (select classIdx, className, classDay, classTime
+                                   from myTimeTable
+                                            inner join class using (classIdx)
+                                            inner join classTime using (classIdx)
+                                   where myTimeTable.userIdx = ?
+                                     and myTimeTable.status = 0
+                                     and myTimeTable.timeTableIdx = ?) as t2 using (classDay, classTime)) AS redundantClassTimeMyTimeTable;    
+    ";
+    $st = $pdo -> prepare($query);
+    $st->execute([$classIdx,$userIdx,$timeTableIdx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["redundantClassTimeMyTimeTable"]);
+}

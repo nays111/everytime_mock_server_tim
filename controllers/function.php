@@ -86,7 +86,11 @@ function checkNullContentInf($contentInf){
     else return true;
 }
 
-
+function isValidSemesterForm($semester){
+    if($semester == 0 or $semester == 1){
+        return true;
+    }else return false;
+}
 
 function sendFcm($fcmToken, $data, $key, $deviceType)
 {
