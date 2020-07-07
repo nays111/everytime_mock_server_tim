@@ -23,21 +23,16 @@ try {
             getLogs("./logs/errors.log");
             break;
         /* ****************************************************************************************************************** */
+        /* ****************************************************************************************************************** */
         /*
-         * API No. 25
-         * API Name : 전체 강좌 조회(검색 포함) API
-         * 마지막 수정 날짜 : 20.07.05
-         */
-        case "getClasses":
+        * API No. 24
+        * API Name : 최근 강의평 조회하기 (홈화면)
+        * 마지막 수정 날짜 : 20.07.05
+        */
+        case "getNewClassComment":
 
             http_response_code(200);
             $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
-
-            $name=$_GET['name']; //과목명을 통한 검색용
-            $professor=$_GET['professor']; //교수명을 통한 검색용
-            $code=$_GET['code']; //과목코드를 통한 검색용
-            $room=$_GET['room']; //장소를 통한 검색용
-
 
 
 
@@ -55,131 +50,14 @@ try {
                     $userID = $userInfo->id;
                     $userIdx = getUserIdx($userID);
 
+                    $result = getNewClassComment();
+                    $res->result = $result;
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "최근 강의평 조회 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
 
 
-//과목명으로 검색하는 경우
-                    if($name){
-                        if(!isValidClassName($name)){
-                            $res->isSuccess = FALSE;
-                            $res->code = 205;
-                            $res->message = "검색결과가 없습니다";
-                            echo json_encode($res, JSON_NUMERIC_CHECK);
-                            return;
-                        }elseif(mb_strlen($name,'utf-8') == 0){
-                            $res->isSuccess = FALSE;
-                            $res->code = 204;
-                            $res->message = "쿼리스트링이 null입니다";
-                            echo json_encode($res, JSON_NUMERIC_CHECK);
-                            return;
-                        }elseif(mb_strlen($name,'utf-8') <2 ){
-                            $res->isSuccess = FALSE;
-                            $res->code = 206;
-                            $res->message = "2글자 이상 입력해주세요";
-                            echo json_encode($res, JSON_NUMERIC_CHECK);
-                            return;
-                        }else{
-                            $result = getClassesByName($name);
-                            $res->result = $result;
-                            $res->isSuccess = TRUE;
-                            $res->code = 101;
-                            $res->message = "과목명 검색을 통한 강좌 리스트 조회 성공";
-                            echo json_encode($res, JSON_NUMERIC_CHECK);
-                        }
-
-//교수명으로 검색하는 경우
-                    }elseif($professor){
-                        if(!isValidClassProfessor($professor)){
-                            $res->isSuccess = FALSE;
-                            $res->code = 205;
-                            $res->message = "검색결과가 없습니다";
-                            echo json_encode($res, JSON_NUMERIC_CHECK);
-                            return;
-
-                        }elseif(mb_strlen($professor,'utf-8')<2){
-                            $res->isSuccess = FALSE;
-                            $res->code = 206;
-                            $res->message = "2글자 이상 입력해주세요";
-                            echo json_encode($res, JSON_NUMERIC_CHECK);
-                            return;
-                        }
-                        elseif(mb_strlen($professor,'utf-8') == 0){
-                            $res->isSuccess = FALSE;
-                            $res->code = 204;
-                            $res->message = "쿼리스트링이 null입니다";
-                            echo json_encode($res, JSON_NUMERIC_CHECK);
-                            return;
-                        }
-                        $result = getClassesByProfessor($professor);
-                        $res->result = $result;
-                        $res->isSuccess = TRUE;
-                        $res->code = 102;
-                        $res->message = "교수명 검색을 통한 강좌 리스트 조회 성공";
-                        echo json_encode($res, JSON_NUMERIC_CHECK);
-//과목코드로 검색하는 경우
-                    }elseif($code){
-                        if(!isValidClassCode($code)){
-                            $res->isSuccess = FALSE;
-                            $res->code = 205;
-                            $res->message = "검색결과가 없습니다";
-                            echo json_encode($res, JSON_NUMERIC_CHECK);
-                            return;
-                        }
-                        elseif(mb_strlen($code,'utf-8')<2){
-                            $res->isSuccess = FALSE;
-                            $res->code = 206;
-                            $res->message = "2글자 이상 입력해주세요";
-                            echo json_encode($res, JSON_NUMERIC_CHECK);
-                            return;
-                        }else if(mb_strlen($code,'utf-8')==0){
-                            $res->isSuccess = FALSE;
-                            $res->code = 204;
-                            $res->message = "null";
-                            echo json_encode($res, JSON_NUMERIC_CHECK);
-                            return;
-                        }
-                        $result = getClassesByCode($code);
-                        $res->result = $result;
-                        $res->isSuccess = TRUE;
-                        $res->code = 103;
-                        $res->message = "과목코드 검색을 통한 강좌 리스트 조회 성공";
-                        echo json_encode($res, JSON_NUMERIC_CHECK);
-//강의실로 검색하는 경우
-                    }elseif($room){
-                        if(!isValidClassRoom($room)){
-                            $res->isSuccess = FALSE;
-                            $res->code = 205;
-                            $res->message = "검색결과가 없습니다";
-                            echo json_encode($res, JSON_NUMERIC_CHECK);
-                            return;
-                        }
-                        elseif(mb_strlen($room,'utf-8')<2){
-                            $res->isSuccess = FALSE;
-                            $res->code = 204;
-                            $res->message = "2글자 이상 입력해주세요";
-                            echo json_encode($res, JSON_NUMERIC_CHECK);
-                            return;
-                        }
-                        elseif(mb_strlen($room,'utf-8')==0){
-                            $res->isSuccess = FALSE;
-                            $res->code = 204;
-                            $res->message = "쿼리스트링이 null입니다";
-                            echo json_encode($res, JSON_NUMERIC_CHECK);
-                            return;
-                        }
-                        $result = getClassesByRoom($room);
-                        $res->result = $result;
-                        $res->isSuccess = TRUE;
-                        $res->code = 104;
-                        $res->message = "강의실 검색을 통한 강좌 리스트 조회 성공";
-                        echo json_encode($res, JSON_NUMERIC_CHECK);
-                    }else{
-                        $result = getClasses();
-                        $res->result = $result;
-                        $res->isSuccess = TRUE;
-                        $res->code = 100;
-                        $res->message = "전체 강좌 리스트 조회 성공";
-                        echo json_encode($res, JSON_NUMERIC_CHECK);
-                    }
                 }
             }else{
                 $res->code = 200;
@@ -192,7 +70,96 @@ try {
         /* ****************************************************************************************************************** */
         /*
         * API No. 25
-        * API Name : 특정 강좌 조회API
+        * API Name : 시간표에 추가한 강좌 리스트 조회 API
+        * 마지막 수정 날짜 : 20.07.05
+        */
+        case "getMyClasses":
+
+            http_response_code(200);
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+
+
+
+            if ($jwt) {
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+
+                } else {
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
+
+                    $result = getMyClasses($userIdx);
+                    $res->result = $result;
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "시간표에 추가한 강좌 리스트 조회 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+
+
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            break;
+        /* ****************************************************************************************************************** */
+        /*
+        * API No. 26
+        * API Name : 최근 강의평 리스트 전체 조회 API
+        * 마지막 수정 날짜 : 20.07.05
+        */
+        case "getClassComments":
+
+            http_response_code(200);
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+
+
+
+            if ($jwt) {
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+
+                } else {
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
+
+                    $result = getClassComments();
+                    $res->result = $result;
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "강의평 리스트 조회 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+
+
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            break;
+
+        /* ****************************************************************************************************************** */
+        /*
+        * API No. 27
+        * API Name : 특정 강좌 상세 조회API
         * 마지막 수정 날짜 : 20.07.05
         */
         case "getClass":
@@ -250,108 +217,67 @@ try {
             break;
 
 
-        /* ****************************************************************************************************************** */
-        /*
-        * API No. 26
-        * API Name : 최근 강의평 조회하기 (홈화면)
-        * 마지막 수정 날짜 : 20.07.05
-        */
-        case "getNewClassComment":
 
-            http_response_code(200);
-            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
-
-
-
-            if ($jwt) {
-                // jwt 유효성 검사
-                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
-                    $res->isSuccess = FALSE;
-                    $res->code = 201;
-                    $res->message = "유효하지 않은 토큰입니다";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-                    addErrorLogs($errorLogs, $res, $req);
-
-                } else {
-                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
-                    $userID = $userInfo->id;
-                    $userIdx = getUserIdx($userID);
-
-                    $result = getNewClassComment();
-                    $res->result = $result;
-                    $res->isSuccess = TRUE;
-                    $res->code = 100;
-                    $res->message = "최근 강의평 조회 성공";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-
-
-                }
-            }else{
-                $res->code = 200;
-                $res->message = "로그인이 필요합니다.";
-                echo json_encode($res, JSON_NUMERIC_CHECK);
-                addErrorLogs($errorLogs, $res, $req);
-                return;
-            }
-            break;
-
-
-
-        /* ****************************************************************************************************************** */
-        /*
-        * API No. 27
-        * API Name : 시간표에 추가한 강좌 리스트 조회 API
-        * 마지막 수정 날짜 : 20.07.05
-        */
-        case "getMyClasses":
-
-            http_response_code(200);
-            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
-
-
-
-            if ($jwt) {
-                // jwt 유효성 검사
-                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
-                    $res->isSuccess = FALSE;
-                    $res->code = 201;
-                    $res->message = "유효하지 않은 토큰입니다";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-                    addErrorLogs($errorLogs, $res, $req);
-
-                } else {
-                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
-                    $userID = $userInfo->id;
-                    $userIdx = getUserIdx($userID);
-
-                    $result = getMyClasses($userIdx);
-                    $res->result = $result;
-                    $res->isSuccess = TRUE;
-                    $res->code = 100;
-                    $res->message = "시간표에 추가한 강좌 리스트 조회 성공";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-
-
-                }
-            }else{
-                $res->code = 200;
-                $res->message = "로그인이 필요합니다.";
-                echo json_encode($res, JSON_NUMERIC_CHECK);
-                addErrorLogs($errorLogs, $res, $req);
-                return;
-            }
-            break;
         /* ****************************************************************************************************************** */
         /*
         * API No. 28
-        * API Name : 강의평 리스트 조회 API
-        * 마지막 수정 날짜 : 20.07.05
+        * API Name : 특정 강의평 요약 정보 조회 API
+        * 마지막 수정 날짜 : 20.07.07
         */
-        case "getClassComments":
+        case "getSummaryOfClassComment":
 
             http_response_code(200);
             $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
 
+            if ($jwt) {
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+
+                } else {
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
+                    $classIdx = $vars["classIdx"];
+
+                    if(!isValidClass($classIdx)){
+                        $res->isSuccess = FALSE;
+                        $res->code = 204;
+                        $res->message = "해당 수업은 없습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+
+                    $res->result = getSummaryOfClassComment($classIdx);
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "강의평 요약 조회 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            break;
+        /* ****************************************************************************************************************** */
+        /*
+        * API No. 29
+        * API Name : 특정 강좌 강의평 리스트 조회 API
+        * 마지막 수정 날짜 : 20.07.08
+        */
+        case "getDistinctClassCommentList":
+
+            http_response_code(200);
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+            $keyword=$_GET['keyword']; //강좌명, 교수를 통한 검색용
 
 
             if ($jwt) {
@@ -367,12 +293,18 @@ try {
                     $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
                     $userID = $userInfo->id;
                     $userIdx = getUserIdx($userID);
-
-                    $result = getClassComments();
-                    $res->result = $result;
+                    $classIdx = $vars["classIdx"];
+                    if(!isValidClass($classIdx)){
+                        $res->isSuccess = FALSE;
+                        $res->code = 204;
+                        $res->message = "해당 수업은 없습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+                    $res->result = getDistinctClassComment($classIdx);
                     $res->isSuccess = TRUE;
                     $res->code = 100;
-                    $res->message = "강의평 리스트 조회 성공";
+                    $res->message = "특정 강좌 강의평 리스트 조회 성공";
                     echo json_encode($res, JSON_NUMERIC_CHECK);
 
 
@@ -388,7 +320,7 @@ try {
 
         /* ****************************************************************************************************************** */
         /*
-        * API No. 29
+        * API No. 30
         * API Name : 강좌 리스트 조회 API
         * 마지막 수정 날짜 : 20.07.05
         */
@@ -463,21 +395,10 @@ try {
         /* ****************************************************************************************************************** */
         /*
          * API No. 31
-         * API Name : 강의평 상세 조회 API
-         * 마지막 수정 날짜 : 20.07.06
-         */
-
-
-
-
-
-        /* ****************************************************************************************************************** */
-        /*
-         * API No. 31
          * API Name : 강의평 작성 API
          * 마지막 수정 날짜 : 20.07.06
          */
-        case postClassComment:
+        case "postClassComment":
             http_response_code(200);
 
             $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
@@ -585,7 +506,7 @@ try {
                         return;
                     }
 
-                    if(isRedundandClassComment($userIdx,$classIdx)){
+                    if(isRedundantClassComment($userIdx,$classIdx)){
                         $res->isSuccess = FALSE;
                         $res->code = 203;
                         $res->message = "이미 수강평을 등록한 적이 있습니다";
@@ -756,7 +677,175 @@ try {
 
         /* ****************************************************************************************************************** */
         /*
-         * API No. 34
+         * API No. 35
+         * API Name : 전체 강좌 조회(검색 포함) API
+         * 마지막 수정 날짜 : 20.07.05
+         */
+        case "getClasses":
+
+            http_response_code(200);
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+
+            $name=$_GET['name']; //과목명을 통한 검색용
+            $professor=$_GET['professor']; //교수명을 통한 검색용
+            $code=$_GET['code']; //과목코드를 통한 검색용
+            $room=$_GET['room']; //장소를 통한 검색용
+
+
+
+
+            if ($jwt) {
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+
+                } else {
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
+
+
+
+//과목명으로 검색하는 경우
+                    if($name){
+                        if(!isValidClassName($name)){
+                            $res->isSuccess = FALSE;
+                            $res->code = 205;
+                            $res->message = "검색결과가 없습니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }elseif(mb_strlen($name,'utf-8') == 0){
+                            $res->isSuccess = FALSE;
+                            $res->code = 204;
+                            $res->message = "쿼리스트링이 null입니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }elseif(mb_strlen($name,'utf-8') <2 ){
+                            $res->isSuccess = FALSE;
+                            $res->code = 206;
+                            $res->message = "2글자 이상 입력해주세요";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }else{
+                            $result = getClassesByName($name);
+                            $res->result = $result;
+                            $res->isSuccess = TRUE;
+                            $res->code = 101;
+                            $res->message = "과목명 검색을 통한 강좌 리스트 조회 성공";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                        }
+
+//교수명으로 검색하는 경우
+                    }elseif($professor){
+                        if(!isValidClassProfessor($professor)){
+                            $res->isSuccess = FALSE;
+                            $res->code = 205;
+                            $res->message = "검색결과가 없습니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+
+                        }elseif(mb_strlen($professor,'utf-8')<2){
+                            $res->isSuccess = FALSE;
+                            $res->code = 206;
+                            $res->message = "2글자 이상 입력해주세요";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }
+                        elseif(mb_strlen($professor,'utf-8') == 0){
+                            $res->isSuccess = FALSE;
+                            $res->code = 204;
+                            $res->message = "쿼리스트링이 null입니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }
+                        $result = getClassesByProfessor($professor);
+                        $res->result = $result;
+                        $res->isSuccess = TRUE;
+                        $res->code = 102;
+                        $res->message = "교수명 검색을 통한 강좌 리스트 조회 성공";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+//과목코드로 검색하는 경우
+                    }elseif($code){
+                        if(!isValidClassCode($code)){
+                            $res->isSuccess = FALSE;
+                            $res->code = 205;
+                            $res->message = "검색결과가 없습니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }
+                        elseif(mb_strlen($code,'utf-8')<2){
+                            $res->isSuccess = FALSE;
+                            $res->code = 206;
+                            $res->message = "2글자 이상 입력해주세요";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }else if(mb_strlen($code,'utf-8')==0){
+                            $res->isSuccess = FALSE;
+                            $res->code = 204;
+                            $res->message = "null";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }
+                        $result = getClassesByCode($code);
+                        $res->result = $result;
+                        $res->isSuccess = TRUE;
+                        $res->code = 103;
+                        $res->message = "과목코드 검색을 통한 강좌 리스트 조회 성공";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+//강의실로 검색하는 경우
+                    }elseif($room){
+                        if(!isValidClassRoom($room)){
+                            $res->isSuccess = FALSE;
+                            $res->code = 205;
+                            $res->message = "검색결과가 없습니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }
+                        elseif(mb_strlen($room,'utf-8')<2){
+                            $res->isSuccess = FALSE;
+                            $res->code = 204;
+                            $res->message = "2글자 이상 입력해주세요";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }
+                        elseif(mb_strlen($room,'utf-8')==0){
+                            $res->isSuccess = FALSE;
+                            $res->code = 204;
+                            $res->message = "쿼리스트링이 null입니다";
+                            echo json_encode($res, JSON_NUMERIC_CHECK);
+                            return;
+                        }
+                        $result = getClassesByRoom($room);
+                        $res->result = $result;
+                        $res->isSuccess = TRUE;
+                        $res->code = 104;
+                        $res->message = "강의실 검색을 통한 강좌 리스트 조회 성공";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                    }else{
+                        $result = getClasses();
+                        $res->result = $result;
+                        $res->isSuccess = TRUE;
+                        $res->code = 100;
+                        $res->message = "전체 강좌 리스트 조회 성공";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                    }
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            break;
+
+            /* ****************************************************************************************************************** */
+        /*
+         * API No. 36
          * API Name : 시간표에 수업 추가 API
          * 마지막 수정 날짜 : 20.07.07
          */
@@ -824,7 +913,115 @@ try {
             }
             break;
         /* ****************************************************************************************************************** */
+        /*
+         * API No. 37
+         * API Name : 내 시간표에서 수업 삭제 API
+         * 마지막 수정 날짜 : 20.07.07
+         */
+        case "deleteClassInMyTimeTable":
+            http_response_code(200);
+
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+
+            if($jwt){
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+                }else{
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
+                    $timeTableIdx = $vars["timeTableIdx"];
+                    $classIdx = $vars["classIdx"];
+
+                    if (!isValidClass($classIdx)){
+                        $res->isSuccess = FALSE;
+                        $res->code = 202;
+                        $res->message = "해당 수업은 존재하지 않습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }elseif(!isValidTimeTable($timeTableIdx)){
+                        $res->isSuccess = FALSE;
+                        $res->code = 203;
+                        $res->message = "해당 시간표는 존재하지 않습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }elseif(!isRedundantClassInMyTimeTable($timeTableIdx,$classIdx)){
+                        $res->isSuccess = FALSE;
+                        $res->code = 204;
+                        $res->message = "내 시간표에 없는 수업 입니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+                    deleteClassInMyTimeTable($userIdx,$classIdx,$timeTableIdx);
+
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "컨텐츠(게시물) 삭제 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                return;
+            }
+            break;
+
         /* ****************************************************************************************************************** */
+
+        /*
+        * API No. 32
+        * API Name : 특정 강의평 리스트 조회 API
+        * 마지막 수정 날짜 : 20.07.07
+        */
+        case "getSummaryOfClassComment":
+/*
+            http_response_code(200);
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+
+            if ($jwt) {
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+
+                } else {
+                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                    $userID = $userInfo->id;
+                    $userIdx = getUserIdx($userID);
+                    $classIdx = $vars["classIdx"];
+
+                    if(!isValidClass($classIdx)){
+                        $res->isSuccess = FALSE;
+                        $res->code = 204;
+                        $res->message = "";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+
+                    $res->result = getSummaryOfClassComment($classIdx);
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "실시간 인기글 조회 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            break;*/
+
     }
 } catch (\Exception $e) {
     return getSQLErrorException($errorLogs, $e, $req);

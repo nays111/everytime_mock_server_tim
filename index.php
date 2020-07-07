@@ -39,11 +39,11 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
 
     /* ************************************************* 게시판 관련 기능 **************************************************** */
     /* ****************** 홈 화면 관련 API *************** */
-    $r->addRoute('GET', '/myNotice', ['NoticeController', 'getMyNotice']); //즐겨찾기 게시판 리스트 조회 API (홈화면)
+    $r->addRoute('GET', '/my-notice', ['NoticeController', 'getMyNotice']); //즐겨찾기 게시판 리스트 조회 API (홈화면)
     $r->addRoute('GET','/hot-content',['NoticeController','getHotContentHome']); // 핫 게시물 조회 API (홈화면)
     $r->addRoute('GET','/popular-content',['NoticeController','getPopularContentHome']); // 실시간 인기글 조회 API (홈화면)
     $r->addRoute('GET', '/notice-list', ['NoticeController', 'getNoticeList']); //전체 게시판 리스트 조회 API
-    $r->addRoute('POST', '/myNotice', ['NoticeController', 'postMyNotice']); // 즐겨찾기 게시판 추가/취소 API
+    $r->addRoute('POST', '/my-notice', ['NoticeController', 'postMyNotice']); // 즐겨찾기 게시판 추가/취소 API
     $r->addRoute('GET', '/notice/{noticeIdx}/contents', ['NoticeController', 'getContentsByNotice']); //특정 게시판에서 컨텐츠(게시물) 리스트 조회 API -> 검색
     $r->addRoute('GET', '/notice/contents', ['NoticeController', 'getContents']); // 전체 게시판에서 컨텐츠(게시물) 리스트 조회 API-> 내가 쓴 글 조회,댓글 단 글 조회, 스크랩한 글 조회, 핫 게시물 조회, 검색
 
@@ -53,35 +53,34 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('PATCH', '/notice/content/{contentIdx}', ['NoticeController', 'updateContent']); // 컨텐츠(게시물) 수정 API
     $r->addRoute('DELETE', '/notice/content/{contentIdx}', ['NoticeController', 'deleteContent']); // 컨텐츠(게시물) 삭제 API
     $r->addRoute('POST', '/scrab', ['NoticeController', 'postScrab']); // 컨텐츠(게시물) 스크랩 추가/취소 API
-    $r->addRoute('POST', '/contentLike', ['NoticeController', 'postContentLike']); // 컨텐츠(게시물) 좋아요 추가 API
+    $r->addRoute('POST', '/content/heart', ['NoticeController', 'postContentLike']); // 컨텐츠(게시물) 좋아요 추가 API
 
     /* ******************* 댓글 관련 API *********************** */
     $r->addRoute('GET', '/notice/content/{contentIdx}/comments', ['NoticeController', 'getComments']); //댓글 조회 API
     $r->addRoute('POST', '/notice/content/{contentIdx}/comment', ['NoticeController', 'postComment']); // 댓글 작성 API
     $r->addRoute('DELETE', '/notice/content/comment/{commentIdx}', ['NoticeController', 'deleteComment']); // 댓글 삭제 API
-    $r->addRoute('POST', '/commentLike', ['NoticeController', 'postCommentLike']); // 댓글 좋아요 추가 API
+    $r->addRoute('POST', '/comment/heart', ['NoticeController', 'postCommentLike']); // 댓글 좋아요 추가 API
 
 
     /* ************************************************* 시간표 관련 기능 **************************************************** */
     /* *******************강좌 및 강의평 관련 API **************** */
-    $r->addRoute('GET', '/class', ['TimetableController', 'getClasses']); //전체 강좌 조회 API
-    $r->addRoute('GET', '/class/{classIdx}', ['TimetableController', 'getClass']); //특정 강좌 조회 API
-    $r->addRoute('GET', '/new-classComment', ['TimetableController', 'getNewClassComment']); //최근 강의평 조회 API(홈화면)
-    $r->addRoute('GET', '/myClass', ['TimetableController', 'getMyClasses']); //시간표에 추가한 강좌 리스트 조회 API
-    $r->addRoute('GET', '/classComment', ['TimetableController', 'getClassComments']); //강의평 리스트 조회 API
+    $r->addRoute('GET', '/new-class-comment', ['TimetableController', 'getNewClassComment']); //최근 강의평 조회 API(홈화면)
+    $r->addRoute('GET', '/my-class', ['TimetableController', 'getMyClasses']); //시간표에 추가한 강좌 리스트 조회 API
+    $r->addRoute('GET', '/class-comment', ['TimetableController', 'getClassComments']); //최근 강의평 리스트 전체 조회 API
+    $r->addRoute('GET', '/class/{classIdx}', ['TimetableController', 'getClass']); //특정 강좌 상세 조회 API
+    $r->addRoute('GET', '/class/{classIdx}/class-comment', ['TimetableController', 'getSummaryOfClassComment']); //강의평 요약 상세 조회 API
+    $r->addRoute('GET', '/class/{classIdx}/class-comments', ['TimetableController', 'getDistinctClassCommentList']); //특정 강좌 강의평 리스트 상세 조회 API
     $r->addRoute('GET', '/class-list', ['TimetableController', 'getClassList']); //강좌 리스트 조회 API
-    $r->addRoute('GET', '/classComment/{classIdx}', ['TimetableController', 'getClassComment']); //강의평 상세 조회 API     -> 아직 못함
-
-    $r->addRoute('POST', '/class/{classIdx}/classComment', ['TimetableController', 'postClassComment']); // 강의평 작성 API
-    $r->addRoute('POST', '/classCommentLike', ['TimetableController', 'postClassCommentLike']); // 강의평 좋아요 추가 API
-
+    $r->addRoute('POST', '/class/{classIdx}/class-comment', ['TimetableController', 'postClassComment']); // 강의평 작성 API
+    $r->addRoute('POST', '/class-comment/heart', ['TimetableController', 'postClassCommentLike']); // 강의평 좋아요 추가 API
 
 
     /* *******************시간표 관련 API **************** */
-    $r->addRoute('GET', '/timeTable', ['TimetableController', 'getTimeTableList']); //내 시간표 목록 조회 API
-    $r->addRoute('GET', '/timeTable/{timeTableIdx}', ['TimetableController', 'getTimeTable']); //내 시간표 조회 API
-    $r->addRoute('POST', '/timeTable/{timeTableIdx}/class', ['TimetableController', 'postMyTimeTable']); // 시간표에 수업 추가 API
-
+    $r->addRoute('GET', '/time-table', ['TimetableController', 'getTimeTableList']); //내 시간표 목록 조회 API
+    $r->addRoute('GET', '/time-table/{timeTableIdx}', ['TimetableController', 'getTimeTable']); //내 시간표 조회 API
+    $r->addRoute('GET', '/class', ['TimetableController', 'getClasses']); //전체 강좌 조회 API
+    $r->addRoute('POST', '/time-table/{timeTableIdx}/class', ['TimetableController', 'postMyTimeTable']); // 시간표에 수업 추가 API
+    $r->addRoute('DELETE', '/time-table/{timeTableIdx}/class/{classIdx}', ['TimetableController', 'deleteClassInMyTimeTable']); //시간표에서 수업 삭제 API
 
 
 

@@ -135,7 +135,7 @@ from user
          left join contentURL using (contentIdx)
 where notice.noticeIdx = ?
   and (content.contentTitle like concat('%', ?, '%') or content.contentInf like concat('%', ?, '%'))
-order by writeDay desc;
+order by content.contentIdx desc;
 ";
     $st = $pdo->prepare($query);
     $st->execute([$noticeIdx,$contentTitle,$contentInf]);
@@ -153,7 +153,7 @@ order by writeDay desc;
 function getContentsAllBySearch($contentTitle,$contentInf){
     $pdo=pdoSqlConnect();
     $query = "
-select distinct content.contentIdx,
+select  distinct content.contentIdx,
                 (case when content.userStatus = 0 then \"익명\" else user.userNickname end)              as contentWriter,
                 content.contentTitle                                                                 as contentTitle,
                 content.contentInf                                                                   as contentInf,
@@ -181,7 +181,7 @@ from user
          inner join notice using (noticeIdx)
          left join contentURL using (contentIdx)
 where (content.contentTitle like concat('%', ?, '%') or content.contentInf like concat('%', ?, '%'))
-order by writeDay desc;
+order by content.contentIdx desc;
 ";
     $st = $pdo->prepare($query);
     $st->execute([$contentTitle,$contentInf]);
