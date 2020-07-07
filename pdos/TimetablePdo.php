@@ -423,7 +423,9 @@ select classComment.classCommentIdx,
                 0) as classStar
 from classComment
          inner join class using (classIdx)
-where classComment.status = 0
+where classComment.createdAt =
+      (select max(t1.createdAt) from classComment as t1 where t1.classIdx = classComment.classIdx)
+      and classComment.status = 0
   and class.status = 0
 order by classComment.createdAt desc
 limit 4;
@@ -798,21 +800,20 @@ function getDistinctClassComment($classIdx){
     $query = "
 select classComment.classCommentIdx,
        classComment.classCommentInf,
-       concat(right(class.classYear, 2), '년', class.classSemester, '학기 수강자')                                         as classStudent,
+       concat(right(class.classYear, 2), '년', class.classSemester, '학기 수강자')   as classStudent,
        truncate((select ifnull(avg(selectStar), 0)
                  from classComment
                  where classComment.classIdx = class.classIdx
                    and classComment.status = 0),
-                0)                                                                                                   as classStar,
+                0)                                                             as classStar,
        (select count(*)
         from classCommentLike
-        where classCommentLike.classCommentIdx = classComment.classCommentIdx)                                       as classCommentLike
+        where classCommentLike.classCommentIdx = classComment.classCommentIdx) as classCommentLike
 from classComment
          inner join class using (classIdx)
-where classComment.createdAt =
-      (select max(t1.createdAt) from classComment as t1 where t1.classIdx = classComment.classIdx)
-  and classComment.status = 0
-  and class.status = 0 and classIdx=?
+where classComment.status = 0
+  and class.status = 0
+  and classIdx = ?
 order by classComment.createdAt desc;
 ";
     $st = $pdo->prepare($query);

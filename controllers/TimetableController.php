@@ -936,7 +936,7 @@ try {
                     $userID = $userInfo->id;
                     $userIdx = getUserIdx($userID);
                     $timeTableIdx = $vars["timeTableIdx"];
-                    $classIdx = $vars["classIdx"];
+                    $classIdx = $req->classIdx;
 
                     if (!isValidClass($classIdx)){
                         $res->isSuccess = FALSE;
@@ -961,7 +961,7 @@ try {
 
                     $res->isSuccess = TRUE;
                     $res->code = 100;
-                    $res->message = "컨텐츠(게시물) 삭제 성공";
+                    $res->message = "내 시간표에서 수업 삭제 성공";
                     echo json_encode($res, JSON_NUMERIC_CHECK);
                 }
             }else{
@@ -973,54 +973,6 @@ try {
 
         /* ****************************************************************************************************************** */
 
-        /*
-        * API No. 32
-        * API Name : 특정 강의평 리스트 조회 API
-        * 마지막 수정 날짜 : 20.07.07
-        */
-        case "getSummaryOfClassComment":
-/*
-            http_response_code(200);
-            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
-
-            if ($jwt) {
-                // jwt 유효성 검사
-                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
-                    $res->isSuccess = FALSE;
-                    $res->code = 201;
-                    $res->message = "유효하지 않은 토큰입니다";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-                    addErrorLogs($errorLogs, $res, $req);
-
-                } else {
-                    $userInfo = getDataByJWToken($jwt, JWT_SECRET_KEY);
-                    $userID = $userInfo->id;
-                    $userIdx = getUserIdx($userID);
-                    $classIdx = $vars["classIdx"];
-
-                    if(!isValidClass($classIdx)){
-                        $res->isSuccess = FALSE;
-                        $res->code = 204;
-                        $res->message = "";
-                        echo json_encode($res, JSON_NUMERIC_CHECK);
-                        return;
-                    }
-
-                    $res->result = getSummaryOfClassComment($classIdx);
-                    $res->isSuccess = TRUE;
-                    $res->code = 100;
-                    $res->message = "실시간 인기글 조회 성공";
-                    echo json_encode($res, JSON_NUMERIC_CHECK);
-
-                }
-            }else{
-                $res->code = 200;
-                $res->message = "로그인이 필요합니다.";
-                echo json_encode($res, JSON_NUMERIC_CHECK);
-                addErrorLogs($errorLogs, $res, $req);
-                return;
-            }
-            break;*/
 
     }
 } catch (\Exception $e) {
