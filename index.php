@@ -21,7 +21,7 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('GET', '/test', ['IndexController', 'test']);
     $r->addRoute('GET', '/test/{testNo}', ['IndexController', 'testDetail']);
     $r->addRoute('POST', '/test', ['IndexController', 'testPost']);
-    $r->addRoute('GET', '/jwt', ['MainController', 'validateJwt']);
+   // $r->addRoute('GET', '/jwt', ['MainController', 'validateJwt']);
     $r->addRoute('POST', '/jwt', ['MainController', 'createJwt']);
 
 
@@ -30,6 +30,8 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     /* ************************************************* 로그인 관련 기능 **************************************************** */
     $r->addRoute('POST','/user',['IndexController','postUser']); //회원가입 API
     $r->addRoute('POST','/login',['IndexController','login']); //로그인 API
+    $r->addRoute('GET','/jwt',['IndexController','validJWT']); //로그인 API
+
     $r->addRoute('GET','/user',['IndexController','getUser']); //유저 정보 조회 API
     $r->addRoute('PATCH','/user',['IndexController','updateUser']); //유저 정보 변경 API (닉네임만 변경할 수 있음)
     $r->addRoute('DELETE','/user',['IndexController','deleteUser']); //회원 탈퇴 API
@@ -52,7 +54,7 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('POST', '/notice/{noticeIdx}/content', ['NoticeController', 'postContent']); // 컨텐츠(게시물) 작성 API
     $r->addRoute('PATCH', '/notice/content/{contentIdx}', ['NoticeController', 'updateContent']); // 컨텐츠(게시물) 수정 API
     $r->addRoute('DELETE', '/notice/content/{contentIdx}', ['NoticeController', 'deleteContent']); // 컨텐츠(게시물) 삭제 API
-    $r->addRoute('POST', '/scrab', ['NoticeController', 'postScrab']); // 컨텐츠(게시물) 스크랩 추가/취소 API
+    $r->addRoute('POST', '/scrap', ['NoticeController', 'postScrab']); // 컨텐츠(게시물) 스크랩 추가/취소 API
     $r->addRoute('POST', '/content/heart', ['NoticeController', 'postContentLike']); // 컨텐츠(게시물) 좋아요 추가 API
 
     /* ******************* 댓글 관련 API *********************** */

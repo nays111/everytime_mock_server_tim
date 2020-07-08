@@ -177,6 +177,41 @@ try {
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
         /*
+         * API No. 2-1
+         * API Name : 토근 검증 API
+         * 마지막 수정 날짜 : 20.07.03
+        */
+        case "validJWT":
+            http_response_code(200);
+
+            if (!isset($_SERVER["HTTP_X_ACCESS_TOKEN"])) {
+                $res->isSuccess = FALSE;
+                $res->code = 202;
+                $res->message = "토큰을 입력하세요.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+
+            if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                $res->isSuccess = FALSE;
+                $res->code = 201;
+                $res->message = "유효하지 않은 토큰입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            http_response_code(200);
+            $res->isSuccess = TRUE;
+            $res->code = 100;
+            $res->message = "유효한 토큰입니다";
+
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            return;
+
+        /*
         * API No. 3
         * API Name : 유저 정보 조회 API
         * 마지막 수정 날짜 : 20.07.03

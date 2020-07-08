@@ -940,13 +940,13 @@ try {
 
                     if (!isValidClass($classIdx)){
                         $res->isSuccess = FALSE;
-                        $res->code = 202;
+                        $res->code = 203;
                         $res->message = "해당 수업은 존재하지 않습니다";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     }elseif(!isValidTimeTable($timeTableIdx)){
                         $res->isSuccess = FALSE;
-                        $res->code = 203;
+                        $res->code = 202;
                         $res->message = "해당 시간표는 존재하지 않습니다";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;

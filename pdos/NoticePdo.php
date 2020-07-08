@@ -315,6 +315,21 @@ function postContent($noticeIdx,$userIdx,$contentTitle,$contentInf,$userStatus){
     $st = null;
     $pdo = null;
 }
+
+//게시글에 이미지 닽이 업로드
+function postContentImage($contentIdx,$userIdx,$contentURL){
+    $pdo = pdoSqlConnect();
+    $query = "INSERT INTO contentURL(contentIdx,userIdx,contentURL) VALUES (?,?,?)";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$contentIdx,$userIdx,$contentURL]);
+
+    $st = null;
+    $pdo = null;
+}
+
+
+
 //게시글 수정
 function updateContent($contentTitle,$contentInf,$userStatus,$contentIdx){
     $pdo = pdoSqlConnect();
@@ -781,6 +796,7 @@ function getHotContent(){
     $pdo=pdoSqlConnect();
     $query = "
 select content.contentIdx                                                                   as contentIdx,
+                (case when content.userStatus = 0 then \"익명\" else user.userNickname end)              as contentWriter,
        content.contentTitle                                                                 as contentTitle,
        content.contentInf                                                                   as contentInf,
        noticeName                                                                           as noticeName,

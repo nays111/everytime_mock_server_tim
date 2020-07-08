@@ -542,6 +542,8 @@ try {
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     }
+                    
+
 
                     postContent($noticeIdx,$userIdx,$req->contentTitle,$req->contentInf,$req->userStatus);
                     $noticeName = getNoticeName($noticeIdx);
