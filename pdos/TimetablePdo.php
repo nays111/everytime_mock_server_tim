@@ -412,7 +412,7 @@ function isValidClassRoom($room){
 function getNewClassComment(){
     $pdo=pdoSqlConnect();
     $query = "
-select classComment.classCommentIdx,
+select classComment.classCommentIdx, class.classIdx,
        class.className,
        class.professor,
        classComment.classCommentInf,
@@ -471,6 +471,7 @@ function getClassComments(){
     $pdo=pdoSqlConnect();
     $query = "
 select classComment.classCommentIdx,
+        class.classIdx,
        class.className,
        class.professor,
        classComment.classCommentInf,

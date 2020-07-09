@@ -187,7 +187,7 @@ try {
             if (!isset($_SERVER["HTTP_X_ACCESS_TOKEN"])) {
                 $res->isSuccess = FALSE;
                 $res->code = 202;
-                $res->message = "토큰을 입력하세요.";
+                $res->message = "토큰 입력 바랍니다";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
                 addErrorLogs($errorLogs, $res, $req);
                 return;

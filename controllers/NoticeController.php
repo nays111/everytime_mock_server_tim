@@ -519,7 +519,7 @@ try {
 
                     if(!isValidUserStatus($req->userStatus)) {
                         $res->isSuccess = FALSE;
-                        $res->code = 205;
+                        $res->code = 207;
                         $res->message = "익명 여부 체크가 잘못되었습니다";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
@@ -529,23 +529,47 @@ try {
                         $res->message = "제목을 입력해주세요";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
-                    }elseif($req->contentInf==null){
+                    }elseif(mb_strlen($req->contentTitle,'utf-8') > 100){
                         $res->isSuccess = FALSE;
                         $res->code = 204;
+                        $res->message = "제목 길이가 너무 깁니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }elseif($req->contentInf==null){
+                        $res->isSuccess = FALSE;
+                        $res->code = 205;
                         $res->message = "내용을 입력하세요";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
-                    }elseif (!isValidNotice($noticeIdx)) {
+                    }elseif(mb_strlen($req->contentInf,'utf-8') > 1000){
+                        $res->isSuccess = FALSE;
+                        $res->code = 206;
+                        $res->message = "내용 길이가 너무 깁니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+                    elseif (!isValidNotice($noticeIdx)) {
                         $res->isSuccess = FALSE;
                         $res->code = 202;
                         $res->message = "해당 게시판은 존재하지 않습니다";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     }
-                    
 
+                    $imageList = $req->imageList; //컨텐츠에 이미지를 업로드할 경우에
+                    foreach ($imageList as $key => $value) {
+                        if (!isValidImageType($imageList[$key]) and !isValidImageForm($imageList[$key])) {
+                            $res->isSuccess = FALSE;
+                            $res->code = 208;
+                            $res->message = "업로드하는 파일 형식이 틀립니다";
+                            echo json_encode($res);
+                            return;
+                        }
+                    }
 
-                    postContent($noticeIdx,$userIdx,$req->contentTitle,$req->contentInf,$req->userStatus);
+                    postContentAndImage($noticeIdx,$userIdx,$req->contentTitle,$req->contentInf,$req->userStatus,$imageList);
+
+                    /*postContent($noticeIdx,$userIdx,$req->contentTitle,$req->contentInf,$req->userStatus);*/
                     $noticeName = getNoticeName($noticeIdx);
 
                     $result["noticeIdx"] =$noticeIdx;
@@ -553,6 +577,7 @@ try {
                     $result["contentTitle"]=$req->contentTitle;
                     $result["contentInf"] = $req->contentInf;
                     $result["userStatus"] = $req->userStatus;
+                    $result["imageList"]=$req->imageList;
 
                     $res->result = $result;
 
@@ -595,7 +620,7 @@ try {
 
                     if(!isValidUserStatus($req->userStatus)) {
                         $res->isSuccess = FALSE;
-                        $res->code = 205;
+                        $res->code = 207;
                         $res->message = "익명 여부 체크가 잘못되었습니다";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
@@ -607,7 +632,7 @@ try {
                         return;
                     }elseif($req->contentInf==null){
                         $res->isSuccess = FALSE;
-                        $res->code = 204;
+                        $res->code = 205;
                         $res->message = "내용을 입력하세요";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
@@ -619,13 +644,38 @@ try {
                         return;
                     }elseif(isMyContent($contentIdx)!=$userIdx){
                         $res->isSuccess = FALSE;
-                        $res->code = 206;
+                        $res->code = 209;
                         $res->message = "본인이 쓰지 않은 댓글은 수정할 수 없습니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }elseif(mb_strlen($req->contentInf,'utf-8') > 1000){
+                        $res->isSuccess = FALSE;
+                        $res->code = 206;
+                        $res->message = "내용 길이가 너무 깁니다";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }elseif(mb_strlen($req->contentTitle,'utf-8') > 100){
+                        $res->isSuccess = FALSE;
+                        $res->code = 204;
+                        $res->message = "제목 길이가 너무 깁니다";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     }
 
-                    updateContent($req->contentTitle,$req->contentInf,$req->userStatus,$contentIdx);
+                    $imageList = $req->imageList; //컨텐츠에 이미지를 업로드할 경우에
+                    foreach ($imageList as $key => $value) {
+                        if (!isValidImageType($imageList[$key]) and !isValidImageForm($imageList[$key])) {
+                            $res->isSuccess = FALSE;
+                            $res->code = 208;
+                            $res->message = "업로드하는 파일 형식이 틀립니다";
+                            echo json_encode($res);
+                            return;
+                        }
+                    }
+
+                    updateContentAndImage($req->contentTitle,$req->contentInf,$req->userStatus,$imageList,$contentIdx);
+
+                    //updateContent($req->contentTitle,$req->contentInf,$req->userStatus,$contentIdx);
 
                     $result["contentIdx"]=$contentIdx;
                     $res->result = $result;

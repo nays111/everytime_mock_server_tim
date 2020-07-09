@@ -64,6 +64,15 @@ function isValidYearForm($year){
 function isValidClassCodeForm($code){
     return preg_match("/^[20]{2}[0-9]{2,4}/",$code); //4자리
 }
+//이미지 url형식
+function isValidImageForm($image){
+    return preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$image);
+}
+//이미지 형식, gif,png,jpg로만 끝나야함
+function isValidImageType($image){
+    return preg_match("/\.(gif|jpg|png)$/i", $image);
+}
+
 
 
 //유효한 익명여부값인지 체크하기

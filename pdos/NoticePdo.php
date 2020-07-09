@@ -61,7 +61,7 @@ order by myNotice.createdAt;
 function getContents($noticeIdx){
     $pdo=pdoSqlConnect();
     $query = "
-select  content.contentIdx,
+select distinct content.contentIdx,
                 (case when content.userStatus = 0 then \"익명\" else user.userNickname end)              as contentWriter,
                 content.contentTitle                                                                 as contentTitle,
                 content.contentInf                                                                   as contentInf,
@@ -69,18 +69,18 @@ select  content.contentIdx,
                 case
                     when ((select contentURL
                            from contentURL
-                           where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                           where contentURLIdx in (select min(contentURLIdx) from contentURL group by contentIdx)
                              and contentURL.contentIdx = content.contentIdx)) is not null
                         then (select contentURL
                               from contentURL
-                              where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                              where contentURLIdx in (select min(contentURLIdx) from contentURL group by contentIdx)
                                 and contentURL.contentIdx = content.contentIdx)
-                    else null end                                                                       as contentThumbnailURL,
+                    else null end                                                                    as contentThumbnailURL,
                 case
                     when timediff(now(), content.createdAt) < \"00:01:00\" then '방금'
                     when timediff(now(), content.createdAt) < \"01:00:00\"
                         then concat(minute(timediff(now(), content.createdAt)), '분전')
-                    else date_format(content.createdAt, \" %m/%d %H:%i\") end                           as writeDay,
+                    else date_format(content.createdAt, \" %m/%d %H:%i\") end                          as writeDay,
                 (select count(*) from contentLike where content.contentIdx = contentLike.contentIdx) as countLike,
                 (select count(*) from comment where comment.contentIdx = content.contentIdx)         as countComment,
                 (select count(*) from contentURL where contentURL.contentIdx = content.contentIdx)   as countImage
@@ -89,7 +89,7 @@ from user
          inner join notice using (noticeIdx)
          left join contentURL using (contentIdx)
 where notice.noticeIdx = ?
-order by content.createdAt desc;
+order by content.contentIdx desc;
 ";
     $st = $pdo->prepare($query);
     $st->execute([$noticeIdx]);
@@ -114,11 +114,11 @@ select distinct content.contentIdx,
                 case
                     when ((select contentURL
                            from contentURL
-                           where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                           where contentURLIdx in (select min(contentURLIdx) from contentURL group by contentIdx)
                              and contentURL.contentIdx = content.contentIdx)) is not null
                         then (select contentURL
                               from contentURL
-                              where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                              where contentURLIdx in (select min(contentURLIdx) from contentURL group by contentIdx)
                                 and contentURL.contentIdx = content.contentIdx)
                     else null end                                                                       as contentThumbnailURL,
                 case
@@ -161,11 +161,11 @@ select  distinct content.contentIdx,
                 case
                     when ((select contentURL
                            from contentURL
-                           where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                           where contentURLIdx in (select min(contentURLIdx) from contentURL group by contentIdx)
                              and contentURL.contentIdx = content.contentIdx)) is not null
                         then (select contentURL
                               from contentURL
-                              where contentURLIdx = (select min(contentURLIdx) from contentURL group by contentIdx)
+                              where contentURLIdx in (select min(contentURLIdx) from contentURL group by contentIdx)
                                 and contentURL.contentIdx = content.contentIdx)
                     else null end                                                                       as contentThumbnailURL,
                 case
@@ -328,6 +328,79 @@ function postContentImage($contentIdx,$userIdx,$contentURL){
     $pdo = null;
 }
 
+function getContentIndex(){
+    $pdo = pdoSqlConnect();
+    $query = "select max(*) num from content ";
+
+    $st = $pdo->prepare($query);
+    $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res[0]['num'];
+}
+
+function postContentAndImage($noticeIdx,$userIdx,$contentTitle,$contentInf,$userStatus,$imageList){
+    $pdo = pdoSqlConnect();
+    $contentQuery = "INSERT INTO content(noticeIdx,userIdx,contentTitle,contentInf,userStatus) VALUES (?,?,?,?,?)";
+    $imageQuery = "INSERT INTO contentURL(contentIdx,userIdx,contentURL) VALUES (?,?,?)";
+    //$updateQuery = "update content set contentThumbnailURL=? where contentIdx=?;";
+
+    try{
+        $st1 = $pdo->prepare($contentQuery);
+        $st2 = $pdo->prepare($imageQuery);
+        //$st3 = $pdo->prepare($updateQuery);
+
+        $pdo->beginTransaction();
+        $st1->execute([$noticeIdx,$userIdx,$contentTitle,$contentInf,$userStatus]);
+        $contentIdx = $pdo->lastInsertId();
+        //$st2->execute([$contentIdx,$userIdx,$imageList]);
+        foreach($imageList as $key => $value){
+            $st2->execute([$contentIdx,$userIdx,$value]);
+        }
+        $pdo->commit();
+    }catch(PDOException $e){
+        if($pdo->inTransaction()){
+            $pdo->rollback();
+        }
+        return $e->getMessage();
+    }
+    $st = null;
+    $pdo = null;
+
+}
+//이미지와 내용 게시글 수정
+function updateContentAndImage($contentTitle,$contentInf,$userStatus,$imageList,$contentIdx){
+    $pdo = pdoSqlConnect();
+    $contentQuery = "update content set contentTitle=?, contentInf = ?, userStatus=? where contentIdx=?";
+    $imageQuery = "update contentURL set contentURL=? where contentIdx=?";
+
+    try{
+        $st1 = $pdo->prepare($contentQuery);
+        $st2 = $pdo->prepare($imageQuery);
+        //$st3 = $pdo->prepare($updateQuery);
+
+        $pdo->beginTransaction();
+        $st1->execute([$contentTitle,$contentInf,$userStatus,$contentIdx]);
+        //$contentIdx = $pdo->lastInsertId();
+        //$st2->execute([$contentIdx,$userIdx,$imageList]);
+        foreach($imageList as $key => $value){
+            $st2->execute([$value,$contentIdx]);
+        }
+        $pdo->commit();
+    }catch(PDOException $e){
+        if($pdo->inTransaction()){
+            $pdo->rollback();
+        }
+        return $e->getMessage();
+    }
+    $st = null;
+    $pdo = null;
+
+}
 
 
 //게시글 수정
@@ -745,7 +818,7 @@ order by writeDay desc;
     return $res;
 }
 
-//아직 적용안함
+//스큷
 function getScrab($userIdx){
     $pdo=pdoSqlConnect();
     $query = "
