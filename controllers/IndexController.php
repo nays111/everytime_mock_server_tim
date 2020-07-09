@@ -169,7 +169,7 @@ try {
 
             $jwt = getJWToken($req->userID,$req->pw, JWT_SECRET_KEY);
 
-            $res->inf = login($req->userID,$req->pw); //pw필요없음
+
             $res->result["jwt"] = $jwt;
             $res->isSuccess = TRUE;
             $res->code = 100;
@@ -384,6 +384,46 @@ try {
             }else{
                 $res->code = 200;
                 $res->message = "로그인이 필요합니다.";
+                return;
+            }
+            break;
+
+
+
+        /*
+        * API No. 38
+        * API Name : 알림 전송 API
+        * 마지막 수정 날짜 : 20.07.09
+        */
+
+        case "sendFCM":
+            http_response_code(200);
+
+            $jwt = $_SERVER['HTTP_X_ACCESS_TOKEN'];
+            if ($jwt) {
+                // jwt 유효성 검사
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+
+                } else {
+                    $fcmToken = 'fJ176vSu4u0:APA91bERw4R893SAgz3gdg2G8vdZ4ZQ3aJKq_haYqWi-Eg2x9rA_h4VJfEA-Z3tjCldjYxQPllXGu03fVPhM_uXhSOYYOaYvmpqDxZ6wuiMgTxjtGiLP5pWRYjg4lcLy5yhQqyZTA3kP';
+                    fcmSend($fcmToken);
+
+                    $res->isSuccess = TRUE;
+                    $res->code = 100;
+                    $res->message = "fcm 테스트 성공";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+
+                }
+            }else{
+                $res->code = 200;
+                $res->message = "로그인이 필요합니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
                 return;
             }
             break;

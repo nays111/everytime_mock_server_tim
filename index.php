@@ -83,7 +83,9 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('GET', '/class', ['TimetableController', 'getClasses']); //전체 강좌 조회 API
     $r->addRoute('POST', '/time-table/{timeTableIdx}/class', ['TimetableController', 'postMyTimeTable']); // 시간표에 수업 추가 API
     $r->addRoute('DELETE', '/time-table/{timeTableIdx}/class', ['TimetableController', 'deleteClassInMyTimeTable']); //시간표에서 수업 삭제 API
+    /* ************************************************************************************************************ */
 
+    $r->addRoute('GET','/sendFCM',['IndexController','sendFCM']);
 
 
 

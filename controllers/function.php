@@ -101,6 +101,27 @@ function isValidSemesterForm($semester){
     }else return false;
 }
 
+function fcmSend($to)
+{   //  Fcm Token 을 받아 알림 푸시
+    $apiKey = 'AAAA8SCvsUE:APA91bEQtOUq0UxVp7y4xizZD8-jAx-jQ6qpEiWJfEGZodW2ewL940yKSZwL_OB7ppNXtN-1ZViHlZZUzh_PV6gfXPRaXoW9zg9SDf_N9S5TFOveA8YvGgp3Y1hcmSobR51fIEd3_BcZ';
+    $title = "댓글 달림";
+    $body = "게시물에 댓글이 달렸습니다";
+    $notification = array('title' => $title, 'body' => $body, 'sound' => 'default', 'badge' => '1');
+    $arrayToSend = array('to' => $to, 'notification' => $notification, 'priority' => 'high');
+    $json = json_encode($arrayToSend);
+    $headers = array('Authorization: key=' . $apiKey, 'Content-Type: application/json');
+    $url = 'https://fcm.googleapis.com/fcm/send';
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    $result = curl_exec($ch);
+    curl_close($ch);
+    return json_decode($result, true);
+
+}
+/*
 function sendFcm($fcmToken, $data, $key, $deviceType)
 {
     $url = 'https://fcm.googleapis.com/fcm/send';
@@ -140,7 +161,7 @@ function sendFcm($fcmToken, $data, $key, $deviceType)
     }
     curl_close($ch);
     return $result;
-}
+}*/
 
 function getTodayByTimeStamp()
 {
